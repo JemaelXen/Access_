@@ -8,14 +8,19 @@ export type User = {
   name: string
   email: string
   username: string
-  avatar: string
-  role: "user" | "admin" | "elite"
-  investmentTier?: "starter" | "pro" | "elite" | "partner"
+  avatar?: string
+  role: "user" | "admin" | "founder" | "elite" | "partner"
   verified: boolean
   joinDate: string
   followers: number
   following: number
   posts: number
+  investmentTier?: "starter" | "pro" | "elite" | "partner"
+  specialAccess?: string[]
+  bio?: string
+  location?: string
+  website?: string
+  birthDate?: string
 }
 
 type AuthContextType = {
@@ -35,18 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is logged in
     if (typeof window !== "undefined") {
       try {
-        const storedUser = localStorage.getItem("access_user")
+        const storedUser = localStorage.getItem("project_access_user")
         if (storedUser) {
           setUser(JSON.parse(storedUser))
         }
       } catch (e) {
         console.error("Failed to parse user data:", e)
-        // Clear corrupted data
         if (typeof window !== "undefined") {
-          localStorage.removeItem("access_user")
+          localStorage.removeItem("project_access_user")
         }
       } finally {
         setIsLoading(false)
@@ -57,58 +60,89 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      // In a real app, this would be an API call
-      // For now, we'll simulate a successful login
       let mockUser: User
 
-      if (email === "admin@access.co") {
+      // Founder account (Jemael Xenn)
+      if (email === "founder@projectaccess.co" || email === "jemael@projectaccess.co") {
         mockUser = {
-          id: "1",
+          id: "founder-001",
           name: "Jemael Xenn",
           email: email,
-          username: "aries",
-          avatar: "A",
+          username: "jemael",
+          avatar: "/placeholder.svg?height=100&width=100",
+          role: "founder",
+          verified: true,
+          joinDate: "January 2024",
+          followers: 2500000,
+          following: 1000,
+          posts: 1250,
+          investmentTier: "partner",
+          specialAccess: ["all", "founder-controls", "admin-panel", "analytics", "user-management"],
+          bio: "Founder & CEO of Project Access. Building the future of social media and investment platforms.",
+          location: "Philippines",
+          website: "https://projectaccess.co",
+        }
+      }
+      // Admin accounts
+      else if (email === "admin@projectaccess.co") {
+        mockUser = {
+          id: "admin-001",
+          name: "Admin User",
+          email: email,
+          username: "admin",
+          avatar: "/placeholder.svg?height=100&width=100",
           role: "admin",
           verified: true,
-          joinDate: "January 2023",
-          followers: 1200000,
-          following: 256,
-          posts: 543,
-          investmentTier: "partner",
+          joinDate: "February 2024",
+          followers: 50000,
+          following: 500,
+          posts: 320,
+          investmentTier: "elite",
+          specialAccess: ["admin-panel", "user-management", "content-moderation"],
+          bio: "Project Access Administrator",
+          location: "Global",
         }
-      } else if (email === "elite@access.co") {
+      }
+      // Elite user
+      else if (email === "elite@projectaccess.co") {
         mockUser = {
-          id: "2",
-          name: "Elite User",
+          id: "elite-001",
+          name: "Elite Member",
           email: email,
           username: "elite",
-          avatar: "E",
+          avatar: "/placeholder.svg?height=100&width=100",
           role: "elite",
           verified: true,
-          joinDate: "March 2023",
-          followers: 50000,
-          following: 120,
-          posts: 210,
+          joinDate: "March 2024",
+          followers: 100000,
+          following: 200,
+          posts: 150,
           investmentTier: "elite",
+          specialAccess: ["elite-club", "premium-features"],
+          bio: "Elite member of Project Access",
+          location: "New York, USA",
         }
-      } else {
+      }
+      // Regular user
+      else {
         mockUser = {
-          id: "3",
-          name: "Regular User",
+          id: Date.now().toString(),
+          name: "New User",
           email: email,
           username: email.split("@")[0],
-          avatar: email.charAt(0).toUpperCase(),
+          avatar: "/placeholder.svg?height=100&width=100",
           role: "user",
           verified: false,
           joinDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-          followers: 120,
-          following: 85,
-          posts: 24,
+          followers: 0,
+          following: 0,
+          posts: 0,
+          bio: "New to Project Access",
         }
       }
 
       setUser(mockUser)
-      localStorage.setItem("access_user", JSON.stringify(mockUser))
+      localStorage.setItem("project_access_user", JSON.stringify(mockUser))
     } catch (error) {
       console.error("Login failed:", error)
       throw error
@@ -120,24 +154,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true)
     try {
-      // In a real app, this would be an API call
-      // For now, we'll simulate a successful signup
       const mockUser: User = {
         id: Date.now().toString(),
         name: name,
         email: email,
         username: email.split("@")[0],
-        avatar: name.charAt(0).toUpperCase(),
+        avatar: "/placeholder.svg?height=100&width=100",
         role: "user",
         verified: false,
         joinDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
         followers: 0,
         following: 0,
         posts: 0,
+        bio: `Welcome to Project Access! I'm ${name}.`,
       }
 
       setUser(mockUser)
-      localStorage.setItem("access_user", JSON.stringify(mockUser))
+      localStorage.setItem("project_access_user", JSON.stringify(mockUser))
     } catch (error) {
       console.error("Signup failed:", error)
       throw error
@@ -148,15 +181,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("access_user")
-    router.push("/login")
+    localStorage.removeItem("project_access_user")
+    router.push("/")
   }
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData }
       setUser(updatedUser)
-      localStorage.setItem("access_user", JSON.stringify(updatedUser))
+      localStorage.setItem("project_access_user", JSON.stringify(updatedUser))
     }
   }
 
@@ -171,7 +204,6 @@ export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
     console.error("useAuth must be used within an AuthProvider")
-    // Return a default context with safe values
     return {
       user: null,
       isLoading: false,

@@ -8,23 +8,26 @@ import {
   Home,
   Users,
   MessageSquare,
-  ShoppingBag,
-  Wallet,
+  Video,
+  Camera,
+  TrendingUp,
+  Briefcase,
   Crown,
-  Tv,
-  Book,
-  BarChart3,
   Settings,
-  LogOut,
   Bell,
   Search,
   Menu,
   X,
-  User,
-  ChevronDown,
+  Plus,
+  Globe,
+  BarChart3,
+  Shield,
+  Newspaper,
 } from "lucide-react"
+import { AsymmetricLogo } from "@/components/asymmetric-logo"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Logo } from "@/components/logo"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,7 +41,7 @@ export function MainNavigation() {
   const { user, logout } = useAuth()
   const pathname = usePathname()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [notifications, setNotifications] = useState(3)
+  const [notifications, setNotifications] = useState(12)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -53,35 +56,47 @@ export function MainNavigation() {
   const mainNavItems = [
     { id: "home", label: "Home", icon: <Home size={20} />, href: "/" },
     { id: "social", label: "Social", icon: <Users size={20} />, href: "/social" },
+    { id: "videos", label: "Videos", icon: <Video size={20} />, href: "/videos" },
+    { id: "stories", label: "Stories", icon: <Camera size={20} />, href: "/stories" },
     { id: "messages", label: "Messages", icon: <MessageSquare size={20} />, href: "/messages", badge: 5 },
-    { id: "marketplace", label: "Marketplace", icon: <ShoppingBag size={20} />, href: "/marketplace" },
-    { id: "wallet", label: "Wallet", icon: <Wallet size={20} />, href: "/wallet" },
+    { id: "trending", label: "Trending", icon: <TrendingUp size={20} />, href: "/trending" },
   ]
 
-  const secondaryNavItems = [
-    { id: "elite", label: "Elite Club", icon: <Crown size={20} />, href: "/elite" },
-    { id: "streaming", label: "Streaming", icon: <Tv size={20} />, href: "/streaming" },
-    { id: "ebooks", label: "E-Books", icon: <Book size={20} />, href: "/ebooks" },
+  const businessNavItems = [
     { id: "invest", label: "Invest", icon: <BarChart3 size={20} />, href: "/invest" },
+    { id: "partnerships", label: "Partners", icon: <Briefcase size={20} />, href: "/partnerships" },
+    { id: "pr", label: "PR Wire", icon: <Newspaper size={20} />, href: "/pr" },
+    { id: "elite", label: "Elite Club", icon: <Crown size={20} />, href: "/elite" },
   ]
 
   const isActive = (href: string) => pathname === href
 
+  const isFounder = user?.role === "founder"
+  const isAdmin = user?.role === "admin" || isFounder
+
   return (
     <div
-      className={`fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 ${scrolled ? "shadow-md" : ""} transition-shadow duration-300`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 ${
+        scrolled ? "shadow-lg" : ""
+      } transition-all duration-300`}
     >
-      <div className="flex h-16 items-center px-4 md:px-6">
-        <div className="flex items-center mr-4">
-          <Link href="/" className="flex items-center">
-            <Logo size="sm" />
-            <span className="ml-2 text-xl font-bold hidden md:inline-block">Access&Co</span>
+      <div className="flex h-16 items-center px-4 md:px-6 max-w-7xl mx-auto">
+        {/* Logo and Brand */}
+        <div className="flex items-center mr-6">
+          <Link href="/" className="flex items-center space-x-3">
+            <AsymmetricLogo size="sm" animated={isFounder} />
+            <div className="hidden md:block">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Project Access
+              </span>
+              {isFounder && <div className="text-xs text-purple-600 font-medium">Founder Edition</div>}
+            </div>
           </Link>
         </div>
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden ml-auto mr-4 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="md:hidden ml-auto mr-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -92,8 +107,8 @@ export function MainNavigation() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search Access&Co..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Search Project Access..."
+            className="w-full pl-10 pr-4 py-2 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-200/50 dark:border-gray-700/50"
           />
         </div>
 
@@ -103,18 +118,18 @@ export function MainNavigation() {
             <Link
               key={item.id}
               href={item.href}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive(item.href)
-                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300 shadow-sm"
+                  : "text-gray-700 hover:bg-gray-100/50 dark:text-gray-300 dark:hover:bg-gray-800/50"
               }`}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span className="hidden lg:inline">{item.label}</span>
               {item.badge && (
                 <Badge
                   variant="secondary"
-                  className="ml-1 bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300"
+                  className="ml-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
                 >
                   {item.badge}
                 </Badge>
@@ -124,13 +139,15 @@ export function MainNavigation() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
-                <span>More</span>
-                <ChevronDown size={16} />
-              </button>
+              <Button variant="ghost" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium">
+                <Briefcase size={16} />
+                <span className="hidden lg:inline">Business</span>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              {secondaryNavItems.map((item) => (
+              <DropdownMenuLabel>Business Features</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {businessNavItems.map((item) => (
                 <DropdownMenuItem key={item.id} asChild>
                   <Link href={item.href} className="flex items-center gap-2 cursor-pointer">
                     {item.icon}
@@ -142,37 +159,69 @@ export function MainNavigation() {
           </DropdownMenu>
         </div>
 
-        {/* User menu and notifications */}
-        <div className="flex items-center ml-auto md:ml-0">
-          <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 mr-2">
-            <Bell size={20} />
-            {notifications > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {notifications}
-              </span>
-            )}
-          </button>
+        {/* Action buttons and user menu */}
+        <div className="flex items-center ml-auto md:ml-4 space-x-2">
+          {user && (
+            <>
+              <Button variant="ghost" size="icon" className="relative rounded-full">
+                <Bell size={20} />
+                {notifications > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {notifications > 9 ? "9+" : notifications}
+                  </span>
+                )}
+              </Button>
+
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Plus size={20} />
+              </Button>
+
+              {isFounder && (
+                <Button variant="ghost" size="icon" className="rounded-full text-purple-600">
+                  <Shield size={20} />
+                </Button>
+              )}
+            </>
+          )}
 
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-medium">
-                    {user?.avatar || "?"}
-                  </div>
-                </button>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                    <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                      {user.name?.charAt(0) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
-                    <span>{user?.name || "User"}</span>
-                    <span className="text-xs text-gray-500">@{user?.username || "user"}</span>
+                    <span className="font-semibold">{user.name}</span>
+                    <span className="text-xs text-gray-500">@{user.username}</span>
+                    {isFounder && (
+                      <Badge className="mt-1 w-fit bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        <Crown size={12} className="mr-1" />
+                        Founder
+                      </Badge>
+                    )}
+                    {isAdmin && !isFounder && (
+                      <Badge className="mt-1 w-fit bg-blue-500 text-white">
+                        <Shield size={12} className="mr-1" />
+                        Admin
+                      </Badge>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
-                    <User size={16} />
+                    <Users size={16} />
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
@@ -182,11 +231,22 @@ export function MainNavigation() {
                     <span>Settings</span>
                   </Link>
                 </DropdownMenuItem>
-                {user && user.role === "admin" && (
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="flex items-center gap-2 cursor-pointer text-purple-600">
+                        <Shield size={16} />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isFounder && (
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
-                      <BarChart3 size={16} />
-                      <span>Admin Dashboard</span>
+                    <Link href="/founder" className="flex items-center gap-2 cursor-pointer text-purple-600">
+                      <Crown size={16} />
+                      <span>Founder Control</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -195,7 +255,7 @@ export function MainNavigation() {
                   onClick={logout}
                   className="flex items-center gap-2 cursor-pointer text-red-500 focus:text-red-500"
                 >
-                  <LogOut size={16} />
+                  <Globe size={16} />
                   <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -204,13 +264,13 @@ export function MainNavigation() {
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm"
               >
                 Sign up
               </Link>
@@ -221,37 +281,38 @@ export function MainNavigation() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
-          <div className="p-4">
-            <div className="relative mb-4">
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md">
+          <div className="p-4 space-y-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="Search Access&Co..."
+                placeholder="Search Project Access..."
                 className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full text-sm focus:outline-none"
               />
             </div>
 
             <div className="space-y-1">
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">MAIN</div>
               {mainNavItems.map((item) => (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium ${
+                  className={`flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium ${
                     isActive(item.href)
-                      ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                      ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300"
                       : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {item.icon}
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
                     <Badge
                       variant="secondary"
-                      className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300"
+                      className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
                     >
                       {item.badge}
                     </Badge>
@@ -259,30 +320,41 @@ export function MainNavigation() {
                 </Link>
               ))}
 
-              <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
-                <p className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400">More Features</p>
-                {secondaryNavItems.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
-              </div>
-
-              {user && user.role === "admin" && (
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 mt-4">BUSINESS</div>
+              {businessNavItems.map((item) => (
                 <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                  key={item.id}
+                  href={item.href}
+                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <BarChart3 size={20} />
-                  <span>Admin Dashboard</span>
+                  {item.icon}
+                  <span>{item.label}</span>
                 </Link>
+              ))}
+
+              {isAdmin && (
+                <>
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 mt-4">ADMIN</div>
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Shield size={20} />
+                    <span>Admin Dashboard</span>
+                  </Link>
+                  {isFounder && (
+                    <Link
+                      href="/founder"
+                      className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Crown size={20} />
+                      <span>Founder Control</span>
+                    </Link>
+                  )}
+                </>
               )}
 
               {user ? (
@@ -291,23 +363,23 @@ export function MainNavigation() {
                     logout()
                     setIsMenuOpen(false)
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-medium text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 mt-4"
                 >
-                  <LogOut size={20} />
+                  <Globe size={20} />
                   <span>Logout</span>
                 </button>
               ) : (
                 <div className="flex flex-col gap-2 mt-4">
                   <Link
                     href="/login"
-                    className="w-full px-3 py-2 text-center text-sm font-medium text-indigo-600 border border-indigo-600 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                    className="w-full px-3 py-2 text-center text-sm font-medium text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Log in
                   </Link>
                   <Link
                     href="/signup"
-                    className="w-full px-3 py-2 text-center text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                    className="w-full px-3 py-2 text-center text-sm font-medium bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign up
