@@ -2,32 +2,9 @@
 
 import { Suspense } from "react"
 import { ErrorBoundary } from "@/components/error-boundary"
-import dynamic from "next/dynamic"
-
-// Dynamically import components with no SSR to avoid hydration issues
-const DynamicSocialFeed = dynamic(
-  () => import("@/components/social-feed").then((mod) => ({ default: mod.SocialFeed })),
-  {
-    ssr: false,
-    loading: () => <div className="h-40 w-full bg-gray-100 animate-pulse rounded-lg"></div>,
-  },
-)
-
-const DynamicTrendingSidebar = dynamic(
-  () => import("@/components/trending-sidebar").then((mod) => ({ default: mod.TrendingSidebar })),
-  {
-    ssr: false,
-    loading: () => <div className="h-20 w-full bg-gray-100 animate-pulse rounded-lg"></div>,
-  },
-)
-
-const DynamicCompanyProfile = dynamic(
-  () => import("@/components/company-profile").then((mod) => ({ default: mod.CompanyProfile })),
-  {
-    ssr: false,
-    loading: () => <div className="h-20 w-full bg-gray-100 animate-pulse rounded-lg"></div>,
-  },
-)
+import { SocialFeed } from "@/components/social-feed"
+import { TrendingSidebar } from "@/components/trending-sidebar"
+import { CompanyProfile } from "@/components/company-profile"
 
 export function HomeContent() {
   return (
@@ -36,7 +13,7 @@ export function HomeContent() {
         <div className="hidden lg:block lg:w-1/4">
           <ErrorBoundary fallback={<div className="p-4 border rounded-lg">Unable to load company profile</div>}>
             <Suspense fallback={<div className="h-20 w-full bg-gray-100 animate-pulse rounded-lg"></div>}>
-              <DynamicCompanyProfile />
+              <CompanyProfile />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -44,7 +21,7 @@ export function HomeContent() {
         <div className="flex-1">
           <ErrorBoundary fallback={<div className="p-4 border rounded-lg">Unable to load social feed</div>}>
             <Suspense fallback={<div className="h-40 w-full bg-gray-100 animate-pulse rounded-lg"></div>}>
-              <DynamicSocialFeed />
+              <SocialFeed />
             </Suspense>
           </ErrorBoundary>
         </div>
@@ -52,7 +29,7 @@ export function HomeContent() {
         <div className="hidden lg:block lg:w-1/4">
           <ErrorBoundary fallback={<div className="p-4 border rounded-lg">Unable to load trending sidebar</div>}>
             <Suspense fallback={<div className="h-20 w-full bg-gray-100 animate-pulse rounded-lg"></div>}>
-              <DynamicTrendingSidebar />
+              <TrendingSidebar />
             </Suspense>
           </ErrorBoundary>
         </div>
