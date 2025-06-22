@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { Progress } from "@/components/ui/progress"
 import {
   Plus,
@@ -192,7 +193,7 @@ export function NewIntegrations() {
   ])
 
   const [installationJobs, setInstallationJobs] = useState<InstallationJob[]>([])
-  
+
   const [customIntegration, setCustomIntegration] = useState<CustomIntegration>({
     name: "",
     description: "",
@@ -207,7 +208,17 @@ export function NewIntegrations() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedComplexity, setSelectedComplexity] = useState("all")
 
-  const categories = ["all", "CRM", "Marketing", "Support", "Development", "Project Management", "Communication", "E-commerce", "Monitoring"]
+  const categories = [
+    "all",
+    "CRM",
+    "Marketing",
+    "Support",
+    "Development",
+    "Project Management",
+    "Communication",
+    "E-commerce",
+    "Monitoring",
+  ]
   const complexityLevels = ["all", "easy", "medium", "advanced"]
 
   useEffect(() => {
@@ -248,11 +259,12 @@ export function NewIntegrations() {
   }, [])
 
   const filteredIntegrations = availableIntegrations.filter((integration) => {
-    const matchesSearch = integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         integration.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch =
+      integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      integration.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || integration.category === selectedCategory
     const matchesComplexity = selectedComplexity === "all" || integration.setupComplexity === selectedComplexity
-    
+
     return matchesSearch && matchesCategory && matchesComplexity
   })
 
@@ -351,8 +363,8 @@ export function NewIntegrations() {
     }
   }
 
-  const activeInstallations = installationJobs.filter((job) => 
-    job.status === "installing" || job.status === "configuring" || job.status === "testing"
+  const activeInstallations = installationJobs.filter(
+    (job) => job.status === "installing" || job.status === "configuring" || job.status === "testing",
   ).length
   const completedInstallations = installationJobs.filter((job) => job.status === "completed").length
 
@@ -479,12 +491,12 @@ export function NewIntegrations() {
                       </div>
                     </div>
 
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {integration.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{integration.description}</p>
 
                     <div className="flex flex-wrap gap-1">
-                      <Badge variant="outline" className="text-xs">{integration.category}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {integration.category}
+                      </Badge>
                       <Badge className={getPriceColor(integration.price)} variant="secondary">
                         {integration.price.toUpperCase()}
                       </Badge>
@@ -544,7 +556,9 @@ export function NewIntegrations() {
                   <div className="text-center py-8">
                     <Download className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">No installation jobs yet</p>
-                    <p className="text-sm text-muted-foreground">Install integrations from the marketplace to see them here</p>
+                    <p className="text-sm text-muted-foreground">
+                      Install integrations from the marketplace to see them here
+                    </p>
                   </div>
                 ) : (
                   installationJobs.map((job) => (
@@ -588,11 +602,7 @@ export function NewIntegrations() {
                         <Button size="sm" variant="outline">
                           View Details
                         </Button>
-                        {job.status === "completed" && (
-                          <Button size="sm">
-                            Configure
-                          </Button>
-                        )}
+                        {job.status === "completed" && <Button size="sm">Configure</Button>}
                         {(job.status === "installing" || job.status === "configuring" || job.status === "testing") && (
                           <Button size="sm" variant="destructive">
                             Cancel
@@ -652,7 +662,10 @@ export function NewIntegrations() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="http-method">HTTP Method</Label>
-                    <Select value={customIntegration.method} onValueChange={(value) => setCustomIntegration({ ...customIntegration, method: value })}>
+                    <Select
+                      value={customIntegration.method}
+                      onValueChange={(value) => setCustomIntegration({ ...customIntegration, method: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -667,7 +680,12 @@ export function NewIntegrations() {
                   </div>
                   <div>
                     <Label htmlFor="authentication">Authentication</Label>
-                    <Select value={customIntegration.authentication} onValueChange={(value: any) => setCustomIntegration({ ...customIntegration, authentication: value })}>
+                    <Select
+                      value={customIntegration.authentication}
+                      onValueChange={(value: any) =>
+                        setCustomIntegration({ ...customIntegration, authentication: value })
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -710,9 +728,7 @@ export function NewIntegrations() {
                     <Plus className="h-4 w-4 mr-2" />
                     Create Integration
                   </Button>
-                  <Button variant="outline">
-                    Test Connection
-                  </Button>
+                  <Button variant="outline">Test Connection</Button>
                 </div>
               </div>
             </CardContent>
@@ -742,8 +758,12 @@ export function NewIntegrations() {
                           https://api.projectaccess.com/webhooks/integrations
                         </p>
                         <div className="flex space-x-2 mt-2">
-                          <Button size="sm" variant="outline">Configure</Button>
-                          <Button size="sm" variant="outline">Test</Button>
+                          <Button size="sm" variant="outline">
+                            Configure
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Test
+                          </Button>
                         </div>
                       </div>
 
@@ -752,12 +772,14 @@ export function NewIntegrations() {
                           <span className="font-medium">System Alerts</span>
                           <Badge className="bg-green-100 text-green-800">ACTIVE</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          https://api.projectaccess.com/webhooks/alerts
-                        </p>
+                        <p className="text-sm text-muted-foreground">https://api.projectaccess.com/webhooks/alerts</p>
                         <div className="flex space-x-2 mt-2">
-                          <Button size="sm" variant="outline">Configure</Button>
-                          <Button size="sm" variant="outline">Test</Button>
+                          <Button size="sm" variant="outline">
+                            Configure
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Test
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -787,11 +809,7 @@ export function NewIntegrations() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="webhook-secret">Webhook Secret</Label>
-                      <Input
-                        id="webhook-secret"
-                        type="password"
-                        placeholder="Enter webhook secret"
-                      />
+                      <Input id="webhook-secret" type="password" placeholder="Enter webhook secret" />
                     </div>
                     <div>
                       <Label htmlFor="retry-attempts">Retry Attempts</Label>
@@ -805,4 +823,27 @@ export function NewIntegrations() {
                           <SelectItem value="5">5 attempts</SelectItem>
                           <SelectItem value="10">10 attempts</SelectItem>
                         </SelectContent>
-                      </Select>\
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <div>
+                      <Label>Enable Webhook Logging</Label>
+                      <p className="text-sm text-muted-foreground">Log all webhook requests and responses</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+
+                <Button className="w-full">
+                  <Webhook className="h-4 w-4 mr-2" />
+                  Create New Webhook
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
