@@ -1,404 +1,317 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
-import { Heart, MessageCircle, Share2, MoreHorizontal, ImageIcon, Smile, Send, Bookmark } from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Heart,
+  MessageCircle,
+  Share,
+  Bookmark,
+  MoreHorizontal,
+  ImageIcon,
+  Video,
+  Smile,
+  MapPin,
+  Crown,
+  Verified,
+  Play,
+} from "lucide-react"
 
-type Post = {
-  id: number
-  author: {
-    id: string
+interface Post {
+  id: string
+  user: {
     name: string
     username: string
-    avatar: string
+    avatar?: string
     verified?: boolean
     role?: string
   }
   content: string
-  image?: string
-  createdAt: string
+  images?: string[]
+  video?: string
+  timestamp: string
   likes: number
   comments: number
   shares: number
   isLiked: boolean
-  isSaved: boolean
+  isBookmarked: boolean
+  location?: string
+  type: "text" | "image" | "video" | "poll" | "investment"
 }
 
 export function SocialFeed() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState("forYou")
+  const [newPost, setNewPost] = useState("")
   const [posts, setPosts] = useState<Post[]>([
     {
-      id: 1,
-      author: {
-        id: "1",
+      id: "1",
+      user: {
         name: "Jemael Xenn",
-        username: "aries",
-        avatar: "A",
+        username: "jemaelxenn",
+        avatar: "/placeholder.svg?height=40&width=40",
         verified: true,
-        role: "admin",
+        role: "founder",
       },
       content:
-        "Excited to announce the launch of Access&Co - the world's most advanced social platform! #AccessYourPotential",
-      createdAt: "2h ago",
-      likes: 1243,
-      comments: 89,
-      shares: 356,
+        "Excited to announce Project Access - the future of social investing and collaboration! 🚀 This platform combines the best of all social media with powerful investment tools. #ProjectAccess #Innovation",
+      timestamp: "2h",
+      likes: 247,
+      comments: 32,
+      shares: 18,
       isLiked: false,
-      isSaved: false,
+      isBookmarked: false,
+      type: "text",
     },
     {
-      id: 2,
-      author: {
-        id: "2",
-        name: "Global Tech News",
-        username: "techupdate",
-        avatar: "G",
+      id: "2",
+      user: {
+        name: "Tech Investor",
+        username: "techinvestor",
+        avatar: "/placeholder.svg?height=40&width=40",
         verified: true,
       },
       content:
-        "Breaking: Access&Co secures major partnerships with global brands. The platform is set to revolutionize how we connect online.",
-      image: "/placeholder.svg?height=400&width=600",
-      createdAt: "4h ago",
-      likes: 842,
-      comments: 56,
-      shares: 201,
-      isLiked: false,
-      isSaved: false,
+        "Just discovered an amazing investment opportunity on Project Access. The due diligence tools are incredible! 📈",
+      images: ["/placeholder.svg?height=300&width=500"],
+      timestamp: "4h",
+      likes: 156,
+      comments: 24,
+      shares: 12,
+      isLiked: true,
+      isBookmarked: true,
+      location: "Silicon Valley",
+      type: "image",
     },
     {
-      id: 3,
-      author: {
-        id: "3",
-        name: "Investment Daily",
-        username: "investnow",
-        avatar: "I",
-        verified: true,
+      id: "3",
+      user: {
+        name: "Startup Founder",
+        username: "startupfounder",
+        avatar: "/placeholder.svg?height=40&width=40",
       },
       content:
-        "Access&Co opens in-app investment opportunities. Users can now buy shares directly through the platform. #InvestInTheFuture",
-      createdAt: "6h ago",
-      likes: 567,
-      comments: 42,
-      shares: 128,
+        "Looking for strategic partners for our AI startup. Project Access makes it so easy to connect with the right investors and collaborators! 🤝",
+      timestamp: "6h",
+      likes: 89,
+      comments: 15,
+      shares: 8,
       isLiked: false,
-      isSaved: false,
-    },
-    {
-      id: 4,
-      author: {
-        id: "4",
-        name: "Elite Club",
-        username: "eliteclub",
-        avatar: "E",
-        verified: true,
-        role: "elite",
-      },
-      content:
-        "Join the Elite World Access Club - exclusive areas for world leaders, politicians, royal families, celebrities, and high-net-worth individuals. Apply now for membership.",
-      image: "/placeholder.svg?height=400&width=600",
-      createdAt: "1d ago",
-      likes: 1892,
-      comments: 145,
-      shares: 432,
-      isLiked: false,
-      isSaved: false,
+      isBookmarked: false,
+      type: "text",
     },
   ])
-  const [newPostContent, setNewPostContent] = useState("")
-  const [activeCommentId, setActiveCommentId] = useState<number | null>(null)
-  const [commentText, setCommentText] = useState("")
 
-  const toggleLike = (postId: number) => {
+  const handleLike = (postId: string) => {
     setPosts(
-      posts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            isLiked: !post.isLiked,
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-          }
-        }
-        return post
-      }),
+      posts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              isLiked: !post.isLiked,
+              likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+            }
+          : post,
+      ),
     )
   }
 
-  const toggleSave = (postId: number) => {
-    setPosts(
-      posts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            isSaved: !post.isSaved,
-          }
-        }
-        return post
-      }),
-    )
+  const handleBookmark = (postId: string) => {
+    setPosts(posts.map((post) => (post.id === postId ? { ...post, isBookmarked: !post.isBookmarked } : post)))
   }
 
-  const handleCreatePost = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreatePost = () => {
+    if (!newPost.trim() || !user) return
 
-    if (!newPostContent.trim() || !user) return
-
-    const newPost: Post = {
-      id: Date.now(),
-      author: {
-        id: user.id || "unknown",
-        name: user.name || "Unknown User",
-        username: user.username || "unknown",
-        avatar: user.avatar || "?",
-        verified: user.verified,
+    const post: Post = {
+      id: Date.now().toString(),
+      user: {
+        name: user.name || "User",
+        username: user.username || "user",
+        avatar: user.avatar,
+        verified: user.role === "founder" || user.role === "admin",
         role: user.role,
       },
-      content: newPostContent,
-      createdAt: "Just now",
+      content: newPost,
+      timestamp: "now",
       likes: 0,
       comments: 0,
       shares: 0,
       isLiked: false,
-      isSaved: false,
+      isBookmarked: false,
+      type: "text",
     }
 
-    setPosts([newPost, ...posts])
-    setNewPostContent("")
-  }
-
-  const handleComment = (postId: number) => {
-    if (activeCommentId === postId) {
-      setActiveCommentId(null)
-    } else {
-      setActiveCommentId(postId)
-      setCommentText("")
-    }
-  }
-
-  const submitComment = (postId: number) => {
-    if (!commentText.trim()) return
-
-    setPosts(
-      posts.map((post) => {
-        if (post.id === postId) {
-          return {
-            ...post,
-            comments: post.comments + 1,
-          }
-        }
-        return post
-      }),
-    )
-
-    setCommentText("")
-    setActiveCommentId(null)
+    setPosts([post, ...posts])
+    setNewPost("")
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {user ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
-          <form onSubmit={handleCreatePost}>
-            <div className="flex items-start gap-3 mb-4">
-              <Avatar>
-                <AvatarFallback>{user?.avatar || "?"}</AvatarFallback>
+    <div className="space-y-6">
+      {/* Create Post */}
+      {user && (
+        <Card className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex space-x-3">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                  {user.name?.charAt(0) || "U"}
+                </AvatarFallback>
               </Avatar>
-              <Textarea
-                placeholder="What's on your mind?"
-                value={newPostContent}
-                onChange={(e) => setNewPostContent(e.target.value)}
-                className="flex-1 resize-none"
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-2">
-                <Button type="button" variant="ghost" size="sm" className="text-gray-500">
-                  <ImageIcon size={18} className="mr-1" />
-                  <span className="text-sm">Photo</span>
-                </Button>
-                <Button type="button" variant="ghost" size="sm" className="text-gray-500">
-                  <Smile size={18} className="mr-1" />
-                  <span className="text-sm">Feeling</span>
-                </Button>
+              <div className="flex-1">
+                <Textarea
+                  placeholder="What's happening on Project Access?"
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                  className="min-h-[80px] border-0 bg-transparent resize-none focus:ring-0 text-lg placeholder:text-gray-500"
+                />
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center space-x-4">
+                    <Button variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50">
+                      <ImageIcon size={18} />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50">
+                      <Video size={18} />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50">
+                      <Smile size={18} />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-purple-600 hover:bg-purple-50">
+                      <MapPin size={18} />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={handleCreatePost}
+                    disabled={!newPost.trim()}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6"
+                  >
+                    Post
+                  </Button>
+                </div>
               </div>
-              <Button type="submit" disabled={!newPostContent.trim()}>
-                Post
-              </Button>
-            </div>
-          </form>
-        </div>
-      ) : (
-        <Card className="mb-6">
-          <CardContent className="p-6 text-center">
-            <p className="mb-4">Sign in to create posts and interact with the community.</p>
-            <div className="flex justify-center gap-4">
-              <Button asChild>
-                <Link href="/login">Log In</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/signup">Sign Up</Link>
-              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Tabs defaultValue="forYou" className="mb-6">
-        <TabsList className="w-full">
-          <TabsTrigger value="forYou" className="flex-1" onClick={() => setActiveTab("forYou")}>
-            For You
-          </TabsTrigger>
-          <TabsTrigger value="following" className="flex-1" onClick={() => setActiveTab("following")}>
-            Following
-          </TabsTrigger>
-          <TabsTrigger value="trending" className="flex-1" onClick={() => setActiveTab("trending")}>
-            Trending
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <div className="space-y-6">
-        {posts.map((post) => (
-          <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4">
-              <div className="flex justify-between items-start mb-4">
-                <Link href={`/profile/${post.author?.username || "unknown"}`} className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback>{post.author?.avatar || "?"}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center">
-                      <span className="font-medium">{post.author?.name || "Unknown User"}</span>
-                      {post.author?.verified && (
-                        <Badge
-                          variant="secondary"
-                          className="ml-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-3 w-3"
-                          >
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                            <polyline points="22 4 12 14.01 9 11.01" />
-                          </svg>
-                        </Badge>
-                      )}
-                      {post.author?.role === "admin" && (
-                        <Badge
-                          variant="secondary"
-                          className="ml-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-                        >
-                          Founder
-                        </Badge>
-                      )}
-                      {post.author?.role === "elite" && (
-                        <Badge
-                          variant="secondary"
-                          className="ml-1 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300"
-                        >
-                          Elite
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-gray-500 dark:text-gray-400 text-sm">
-                      @{post.author?.username || "unknown"} · {post.createdAt}
-                    </div>
+      {/* Posts Feed */}
+      {posts.map((post) => (
+        <Card
+          key={post.id}
+          className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-shadow"
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={post.user.avatar || "/placeholder.svg"} />
+                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                    {post.user.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-sm">{post.user.name}</h3>
+                    {post.user.verified && <Verified size={14} className="text-blue-500" />}
+                    {post.user.role === "founder" && (
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                        <Crown size={10} className="mr-1" />
+                        Founder
+                      </Badge>
+                    )}
                   </div>
-                </Link>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <MoreHorizontal size={18} />
-                </Button>
-              </div>
-
-              <p className="mb-4">{post.content}</p>
-
-              {post.image && (
-                <div className="mb-4 rounded-lg overflow-hidden">
-                  <img src={post.image || "/placeholder.svg"} alt="Post content" className="w-full h-auto" />
-                </div>
-              )}
-
-              <div className="flex justify-between text-gray-500 dark:text-gray-400 text-sm mb-2">
-                <span>{post.likes} likes</span>
-                <span>
-                  {post.comments} comments · {post.shares} shares
-                </span>
-              </div>
-
-              <div className="border-t border-b border-gray-100 dark:border-gray-700 py-2 flex justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={post.isLiked ? "text-red-500" : "text-gray-500"}
-                  onClick={() => toggleLike(post.id)}
-                >
-                  <Heart size={18} className="mr-1" fill={post.isLiked ? "currentColor" : "none"} />
-                  <span>Like</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-500" onClick={() => handleComment(post.id)}>
-                  <MessageCircle size={18} className="mr-1" />
-                  <span>Comment</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-500">
-                  <Share2 size={18} className="mr-1" />
-                  <span>Share</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={post.isSaved ? "text-indigo-500" : "text-gray-500"}
-                  onClick={() => toggleSave(post.id)}
-                >
-                  <Bookmark size={18} className="mr-1" fill={post.isSaved ? "currentColor" : "none"} />
-                  <span>Save</span>
-                </Button>
-              </div>
-
-              {activeCommentId === post.id && (
-                <div className="mt-4 flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{user?.avatar || "?"}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      className="w-full p-2 pr-10 border border-gray-200 dark:border-gray-700 rounded-full bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Write a comment..."
-                      value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 text-indigo-600 h-7 w-7"
-                      onClick={() => submitComment(post.id)}
-                      disabled={!commentText.trim()}
-                    >
-                      <Send size={16} />
-                    </Button>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span>@{post.user.username}</span>
+                    <span>•</span>
+                    <span>{post.timestamp}</span>
+                    {post.location && (
+                      <>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <MapPin size={10} />
+                          {post.location}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal size={16} />
+              </Button>
             </div>
-          </div>
-        ))}
-      </div>
+          </CardHeader>
+
+          <CardContent className="pt-0">
+            <p className="text-sm leading-relaxed mb-3">{post.content}</p>
+
+            {/* Media */}
+            {post.images && post.images.length > 0 && (
+              <div className="mb-3 rounded-xl overflow-hidden">
+                <img src={post.images[0] || "/placeholder.svg"} alt="Post image" className="w-full h-64 object-cover" />
+              </div>
+            )}
+
+            {post.video && (
+              <div className="mb-3 rounded-xl overflow-hidden relative">
+                <video src={post.video} className="w-full h-64 object-cover" controls={false} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Button size="lg" className="rounded-full bg-black/50 hover:bg-black/70">
+                    <Play size={24} className="text-white ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+              <div className="flex items-center space-x-6">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleLike(post.id)}
+                  className={`flex items-center gap-2 ${
+                    post.isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-red-500"
+                  }`}
+                >
+                  <Heart size={16} className={post.isLiked ? "fill-current" : ""} />
+                  <span className="text-xs">{post.likes}</span>
+                </Button>
+
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-gray-500 hover:text-blue-500">
+                  <MessageCircle size={16} />
+                  <span className="text-xs">{post.comments}</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-2 text-gray-500 hover:text-green-500"
+                >
+                  <Share size={16} />
+                  <span className="text-xs">{post.shares}</span>
+                </Button>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleBookmark(post.id)}
+                className={`${
+                  post.isBookmarked ? "text-purple-500 hover:text-purple-600" : "text-gray-500 hover:text-purple-500"
+                }`}
+              >
+                <Bookmark size={16} className={post.isBookmarked ? "fill-current" : ""} />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }

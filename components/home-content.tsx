@@ -6,11 +6,8 @@ import { SocialFeed } from "@/components/social-feed"
 import { TrendingSidebar } from "@/components/trending-sidebar"
 import { StoriesBar } from "@/components/stories-bar"
 import { QuickActions } from "@/components/quick-actions"
-import { useAuth } from "@/contexts/auth-context"
 
 export function HomeContent() {
-  const { user } = useAuth()
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-950 dark:to-blue-950">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
