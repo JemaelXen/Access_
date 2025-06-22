@@ -254,7 +254,7 @@ export function AlertRules() {
     const interval = setInterval(() => {
       // Randomly trigger alerts for demonstration
       if (Math.random() < 0.1) {
-        const activeRules = alertRules.filter(rule => rule.enabled)
+        const activeRules = alertRules.filter((rule) => rule.enabled)
         if (activeRules.length > 0) {
           const randomRule = activeRules[Math.floor(Math.random() * activeRules.length)]
           const newAlert: AlertHistory = {
@@ -267,14 +267,16 @@ export function AlertRules() {
             status: "active",
             channels: randomRule.channels,
           }
-          setAlertHistory(prev => [newAlert, ...prev.slice(0, 9)])
-          
+          setAlertHistory((prev) => [newAlert, ...prev.slice(0, 9)])
+
           // Update rule trigger count
-          setAlertRules(prev => prev.map(rule => 
-            rule.id === randomRule.id 
-              ? { ...rule, triggerCount: rule.triggerCount + 1, lastTriggered: new Date() }
-              : rule
-          ))
+          setAlertRules((prev) =>
+            prev.map((rule) =>
+              rule.id === randomRule.id
+                ? { ...rule, triggerCount: rule.triggerCount + 1, lastTriggered: new Date() }
+                : rule,
+            ),
+          )
         }
       }
     }, 10000)
@@ -345,7 +347,7 @@ export function AlertRules() {
         triggerCount: 0,
         createdAt: new Date(),
       }
-      setAlertRules(prev => [rule, ...prev])
+      setAlertRules((prev) => [rule, ...prev])
       setNewRule({
         name: "",
         description: "",
@@ -369,7 +371,7 @@ export function AlertRules() {
         enabled: true,
         testStatus: null,
       }
-      setNotificationChannels(prev => [channel, ...prev])
+      setNotificationChannels((prev) => [channel, ...prev])
       setNewChannel({
         name: "",
         type: "email",
@@ -379,29 +381,27 @@ export function AlertRules() {
   }
 
   const handleToggleRule = (ruleId: string) => {
-    setAlertRules(prev => prev.map(rule => 
-      rule.id === ruleId ? { ...rule, enabled: !rule.enabled } : rule
-    ))
+    setAlertRules((prev) => prev.map((rule) => (rule.id === ruleId ? { ...rule, enabled: !rule.enabled } : rule)))
   }
 
   const handleTestChannel = (channelId: string) => {
-    setNotificationChannels(prev => prev.map(channel => 
-      channel.id === channelId ? { ...channel, testStatus: "pending" } : channel
-    ))
-    
+    setNotificationChannels((prev) =>
+      prev.map((channel) => (channel.id === channelId ? { ...channel, testStatus: "pending" } : channel)),
+    )
+
     // Simulate test result
     setTimeout(() => {
-      setNotificationChannels(prev => prev.map(channel => 
-        channel.id === channelId 
-          ? { ...channel, testStatus: Math.random() > 0.2 ? "success" : "failed" }
-          : channel
-      ))
+      setNotificationChannels((prev) =>
+        prev.map((channel) =>
+          channel.id === channelId ? { ...channel, testStatus: Math.random() > 0.2 ? "success" : "failed" } : channel,
+        ),
+      )
     }, 2000)
   }
 
-  const activeAlerts = alertHistory.filter(alert => alert.status === "active").length
-  const enabledRules = alertRules.filter(rule => rule.enabled).length
-  const enabledChannels = notificationChannels.filter(channel => channel.enabled).length
+  const activeAlerts = alertHistory.filter((alert) => alert.status === "active").length
+  const enabledRules = alertRules.filter((rule) => rule.enabled).length
+  const enabledChannels = notificationChannels.filter((channel) => channel.enabled).length
   const totalTriggers = alertRules.reduce((sum, rule) => sum + rule.triggerCount, 0)
 
   return (
@@ -476,22 +476,15 @@ export function AlertRules() {
                   <div key={rule.id} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Switch
-                          checked={rule.enabled}
-                          onCheckedChange={() => handleToggleRule(rule.id)}
-                        />
+                        <Switch checked={rule.enabled} onCheckedChange={() => handleToggleRule(rule.id)} />
                         <div>
                           <h3 className="font-medium">{rule.name}</h3>
                           <p className="text-sm text-muted-foreground">{rule.description}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge className={getSeverityColor(rule.severity)}>
-                          {rule.severity.toUpperCase()}
-                        </Badge>
-                        <Badge variant="outline">
-                          {rule.triggerCount} triggers
-                        </Badge>
+                        <Badge className={getSeverityColor(rule.severity)}>{rule.severity.toUpperCase()}</Badge>
+                        <Badge variant="outline">{rule.triggerCount} triggers</Badge>
                       </div>
                     </div>
 
@@ -508,7 +501,7 @@ export function AlertRules() {
                         <p className="text-muted-foreground">Channels</p>
                         <div className="flex flex-wrap gap-1">
                           {rule.channels.slice(0, 2).map((channelId) => {
-                            const channel = notificationChannels.find(c => c.id === channelId)
+                            const channel = notificationChannels.find((c) => c.id === channelId)
                             return channel ? (
                               <Badge key={channelId} variant="outline" className="text-xs">
                                 {channel.name}
@@ -575,13 +568,20 @@ export function AlertRules() {
                       </div>
                       <div className="flex items-center space-x-2">
                         {channel.testStatus && (
-                          <Badge className={
-                            channel.testStatus === "success" ? "bg-green-100 text-green-800" :
-                            channel.testStatus === "failed" ? "bg-red-100 text-red-800" :
-                            "bg-yellow-100 text-yellow-800"
-                          }>
-                            {channel.testStatus === "success" ? "TEST PASSED" :
-                             channel.testStatus === "failed" ? "TEST FAILED" : "TESTING"}
+                          <Badge
+                            className={
+                              channel.testStatus === "success"
+                                ? "bg-green-100 text-green-800"
+                                : channel.testStatus === "failed"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                            }
+                          >
+                            {channel.testStatus === "success"
+                              ? "TEST PASSED"
+                              : channel.testStatus === "failed"
+                                ? "TEST FAILED"
+                                : "TESTING"}
                           </Badge>
                         )}
                         <Switch checked={channel.enabled} />
@@ -600,8 +600,8 @@ export function AlertRules() {
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => handleTestChannel(channel.id)}
                         disabled={channel.testStatus === "pending"}
@@ -626,7 +626,10 @@ export function AlertRules() {
                         value={newChannel.name}
                         onChange={(e) => setNewChannel({ ...newChannel, name: e.target.value })}
                       />
-                      <Select value={newChannel.type} onValueChange={(value: any) => setNewChannel({ ...newChannel, type: value })}>
+                      <Select
+                        value={newChannel.type}
+                        onValueChange={(value: any) => setNewChannel({ ...newChannel, type: value })}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -678,12 +681,8 @@ export function AlertRules() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge className={getSeverityColor(alert.severity)}>
-                          {alert.severity.toUpperCase()}
-                        </Badge>
-                        <Badge className={getStatusColor(alert.status)}>
-                          {alert.status.toUpperCase()}
-                        </Badge>
+                        <Badge className={getSeverityColor(alert.severity)}>{alert.severity.toUpperCase()}</Badge>
+                        <Badge className={getStatusColor(alert.status)}>{alert.status.toUpperCase()}</Badge>
                       </div>
                     </div>
 
@@ -695,17 +694,16 @@ export function AlertRules() {
                       <div>
                         <p className="text-muted-foreground">Duration</p>
                         <p className="font-medium">
-                          {alert.resolvedAt 
+                          {alert.resolvedAt
                             ? `${Math.round((alert.resolvedAt.getTime() - alert.triggeredAt.getTime()) / 60000)}m`
-                            : `${Math.round((Date.now() - alert.triggeredAt.getTime()) / 60000)}m (ongoing)`
-                          }
+                            : `${Math.round((Date.now() - alert.triggeredAt.getTime()) / 60000)}m (ongoing)`}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Notified Channels</p>
                         <div className="flex flex-wrap gap-1">
                           {alert.channels.slice(0, 2).map((channelId) => {
-                            const channel = notificationChannels.find(c => c.id === channelId)
+                            const channel = notificationChannels.find((c) => c.id === channelId)
                             return channel ? (
                               <Badge key={channelId} variant="outline" className="text-xs">
                                 {channel.name}
@@ -724,9 +722,7 @@ export function AlertRules() {
                     <div className="flex space-x-2">
                       {alert.status === "active" && (
                         <>
-                          <Button size="sm">
-                            Acknowledge
-                          </Button>
+                          <Button size="sm">Acknowledge</Button>
                           <Button size="sm" variant="outline">
                             Resolve
                           </Button>
@@ -765,7 +761,10 @@ export function AlertRules() {
                   </div>
                   <div>
                     <Label htmlFor="rule-severity">Severity</Label>
-                    <Select value={newRule.severity} onValueChange={(value: any) => setNewRule({ ...newRule, severity: value })}>
+                    <Select
+                      value={newRule.severity}
+                      onValueChange={(value: any) => setNewRule({ ...newRule, severity: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -811,15 +810,18 @@ export function AlertRules() {
                   </div>
                   <div>
                     <Label htmlFor="rule-operator">Operator</Label>
-                    <Select value={newRule.operator} onValueChange={(value: any) => setNewRule({ ...newRule, operator: value })}>
+                    <Select
+                      value={newRule.operator}
+                      onValueChange={(value: any) => setNewRule({ ...newRule, operator: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value=">">Greater than (>)</SelectItem>
-                        <SelectItem value=">=">Greater than or equal (>=)</SelectItem>
-                        <SelectItem value="<">Less than (<)</SelectItem>
-                        <SelectItem value="<=">Less than or equal (<=)</SelectItem>
+                        <SelectItem value="&gt;">Greater than (&gt;)</SelectItem>
+                        <SelectItem value=">=">Greater than or equal (&gt;=)</SelectItem>
+                        <SelectItem value="<">Less than (&lt;)</SelectItem>
+                        <SelectItem value="<=">Less than or equal (&lt;=)</SelectItem>
                         <SelectItem value="=">Equal to (=)</SelectItem>
                       </SelectContent>
                     </Select>
@@ -858,25 +860,27 @@ export function AlertRules() {
                 <div>
                   <Label>Notification Channels</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                    {notificationChannels.filter(c => c.enabled).map((channel) => (
-                      <div key={channel.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={channel.id}
-                          checked={newRule.channels.includes(channel.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setNewRule({ ...newRule, channels: [...newRule.channels, channel.id] })
-                            } else {
-                              setNewRule({ ...newRule, channels: newRule.channels.filter(id => id !== channel.id) })
-                            }
-                          }}
-                        />
-                        <Label htmlFor={channel.id} className="flex items-center space-x-2">
-                          {getChannelIcon(channel.type)}
-                          <span>{channel.name}</span>
-                        </Label>
-                      </div>
-                    ))}
+                    {notificationChannels
+                      .filter((c) => c.enabled)
+                      .map((channel) => (
+                        <div key={channel.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={channel.id}
+                            checked={newRule.channels.includes(channel.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewRule({ ...newRule, channels: [...newRule.channels, channel.id] })
+                              } else {
+                                setNewRule({ ...newRule, channels: newRule.channels.filter((id) => id !== channel.id) })
+                              }
+                            }}
+                          />
+                          <Label htmlFor={channel.id} className="flex items-center space-x-2">
+                            {getChannelIcon(channel.type)}
+                            <span>{channel.name}</span>
+                          </Label>
+                        </div>
+                      ))}
                   </div>
                 </div>
 
