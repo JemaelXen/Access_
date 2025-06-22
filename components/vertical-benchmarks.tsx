@@ -1,13 +1,9 @@
 "use client"
 
 import { CardContent } from "@/components/ui/card"
-
 import { Badge } from "@/components/ui/badge"
-
 import { CardTitle } from "@/components/ui/card"
-
 import { CardHeader } from "@/components/ui/card"
-
 import { Card } from "@/components/ui/card"
 
 interface VerticalBenchmarksProps {
@@ -16,7 +12,7 @@ interface VerticalBenchmarksProps {
 }
 
 export function VerticalBenchmarks({ vertical, verticalKey }: VerticalBenchmarksProps) {
-  const isParticipating = vertical.yourRank !== "N/A"
+  const isParticipating = vertical?.yourRank !== "N/A"
 
   const benchmarkCategories = {
     fintech: [
