@@ -10,6 +10,11 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:integration": "jest --testPathPattern=integration",
+    "test:visual": "playwright test",
+    "test:visual:headed": "playwright test --headed",
+    "test:visual:report": "playwright show-report",
+    "test:visual:ui": "playwright test --ui",
+    "test:visual:update": "playwright test --update-snapshots",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit"
   },
@@ -65,6 +70,7 @@
     "vaul": "latest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
