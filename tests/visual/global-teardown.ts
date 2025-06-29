@@ -3,24 +3,15 @@ import type { FullConfig } from "@playwright/test"
 async function globalTeardown(config: FullConfig) {
   console.log("🧹 Starting global teardown for visual tests...")
 
-  // Clean up any test data or resources
-  if (process.env.CI) {
-    console.log("Cleaning up CI environment")
-    // CI-specific cleanup
-  } else {
-    console.log("Cleaning up local development environment")
-    // Local cleanup
-  }
+  // Clean up any test artifacts
+  console.log("🗑️  Cleaning up test artifacts...")
 
-  // Clear any temporary files
-  try {
-    // Add any cleanup logic here if needed
-    console.log("✅ Cleanup completed")
-  } catch (error) {
-    console.error("❌ Cleanup failed:", error)
-  }
+  // Log test completion
+  console.log("📊 Visual test suite completed")
+  console.log(`📁 Test results saved to: ${config.outputDir}`)
+  console.log(`📋 HTML report available at: playwright-report/index.html`)
 
-  console.log("✅ Global teardown completed successfully")
+  console.log("✅ Global teardown completed successfully!")
 }
 
 export default globalTeardown

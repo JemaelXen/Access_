@@ -3,40 +3,45 @@ import { chromium, type FullConfig } from "@playwright/test"
 async function globalSetup(config: FullConfig) {
   console.log("🚀 Starting global setup for visual tests...")
 
-  // Set up test database or mock data if needed
-  if (process.env.CI) {
-    console.log("Running in CI environment")
-    // CI-specific setup
-    process.env.NODE_ENV = "test"
-    process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000/api"
-  } else {
-    console.log("Running in local development environment")
-    // Local development setup
-    process.env.NODE_ENV = "development"
-    process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000/api"
-  }
+  // Set up environment variables
+  process.env.NODE_ENV = "test"
+  process.env.NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 
-  // Launch browser for authentication setup
+  console.log(`📍 Base URL: ${process.env.NEXT_PUBLIC_API_URL}`)
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`)
+  console.log(`🤖 CI Mode: ${process.env.CI ? "Yes" : "No"}`)
+
+  // Launch browser for setup tasks
   const browser = await chromium.launch()
-  const context = await browser.newContext()
-  const page = await context.newPage()
+  const page = await browser.newPage()
 
   try {
-    // Navigate to the app to ensure it's running
-    await page.goto("http://localhost:3000", { waitUntil: "networkidle" })
-    console.log("✅ Application is running and accessible")
-
-    // Set up authentication tokens for different user types
-    await page.evaluate(() => {
-      // Mock authentication tokens
-      localStorage.setItem("auth-token", "mock-test-token-12345")
-      localStorage.setItem("user-role", "admin")
-      localStorage.setItem("user-id", "test-user-123")
-      localStorage.setItem("user-name", "Test User")
-      localStorage.setItem("user-email", "test@example.com")
+    // Wait for the application to be ready
+    console.log("⏳ Waiting for application to be ready...")
+    await page.goto(process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000", {
+      waitUntil: "networkidle",
+      timeout: 60000,
     })
 
-    console.log("✅ Authentication setup completed")
+    // Check if the app is responding
+    const title = await page.title()
+    console.log(`✅ Application ready! Title: ${title}`)
+
+    // Pre-warm the application by visiting key pages
+    const pagesToWarm = ["/", "/dashboard", "/social", "/integration-hub", "/monitoring-dashboard", "/login", "/signup"]
+
+    console.log("🔥 Pre-warming application pages...")
+    for (const path of pagesToWarm) {
+      try {
+        await page.goto(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+          waitUntil: "networkidle",
+          timeout: 30000,
+        })
+        console.log(`   ✓ Warmed: ${path}`)
+      } catch (error) {
+        console.log(`   ⚠️  Failed to warm: ${path}`)
+      }
+    }
   } catch (error) {
     console.error("❌ Global setup failed:", error)
     throw error
@@ -44,7 +49,7 @@ async function globalSetup(config: FullConfig) {
     await browser.close()
   }
 
-  console.log("✅ Global setup completed successfully")
+  console.log("✅ Global setup completed successfully!")
 }
 
 export default globalSetup

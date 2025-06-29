@@ -16,21 +16,22 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ["html", { outputFolder: "playwright-report" }],
-    ["json", { outputFile: "test-results/visual-results.json" }],
-    ["junit", { outputFile: "test-results/junit.xml" }],
+    ["json", { outputFile: "test-results/results.json" }],
+    ["junit", { outputFile: "test-results/results.xml" }],
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
     /* Take screenshot on failure */
     screenshot: "only-on-failure",
     /* Record video on failure */
     video: "retain-on-failure",
-    /* Global timeout for each test */
-    actionTimeout: 30000,
+    /* Global timeout for each action */
+    actionTimeout: 10000,
+    /* Global timeout for navigation */
     navigationTimeout: 30000,
   },
 
@@ -66,19 +67,21 @@ export default defineConfig({
       name: "Mobile Safari",
       use: { ...devices["iPhone 12"] },
     },
+    /* Test against branded browsers. */
     {
-      name: "Tablet",
-      use: {
-        ...devices["iPad Pro"],
-        viewport: { width: 1024, height: 1366 },
-      },
+      name: "Microsoft Edge",
+      use: { ...devices["Desktop Edge"], channel: "msedge" },
+    },
+    {
+      name: "Google Chrome",
+      use: { ...devices["Desktop Chrome"], channel: "chrome" },
     },
   ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:3000",
+    url: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
@@ -86,19 +89,20 @@ export default defineConfig({
   /* Visual comparison settings */
   expect: {
     // Threshold for pixel difference
+    threshold: 0.2,
     toHaveScreenshot: {
       threshold: 0.2,
-      mode: "pixel",
       animations: "disabled",
-      caret: "hide",
     },
     toMatchSnapshot: {
       threshold: 0.2,
-      mode: "pixel",
     },
   },
 
   /* Global setup and teardown */
   globalSetup: require.resolve("./tests/visual/global-setup.ts"),
   globalTeardown: require.resolve("./tests/visual/global-teardown.ts"),
+
+  /* Output directory for test results */
+  outputDir: "test-results/",
 })

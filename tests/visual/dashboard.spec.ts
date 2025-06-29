@@ -2,53 +2,63 @@ import { test } from "@playwright/test"
 import { ScreenshotHelpers } from "./utils/screenshot-helpers"
 
 test.describe("Dashboard Visual Tests", () => {
+  let helpers: ScreenshotHelpers
+
   test.beforeEach(async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.setFixedTime()
-    await helpers.mockApiResponses()
+    helpers = new ScreenshotHelpers(page)
+    await helpers.setupTestEnvironment()
     await helpers.setupAuth("admin")
+  })
+
+  test("dashboard full layout", async ({ page }) => {
     await page.goto("/dashboard")
-  })
-
-  test("admin dashboard full layout", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.takeFullPageScreenshot("admin-dashboard")
-  })
-
-  test("dashboard metrics cards", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.takeElementScreenshot('[data-testid="metrics-cards"]', "dashboard-metrics")
-  })
-
-  test("dashboard charts section", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.takeElementScreenshot('[data-testid="charts-section"]', "dashboard-charts")
-  })
-
-  test("dashboard sidebar navigation", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.takeElementScreenshot('[data-testid="sidebar"]', "dashboard-sidebar")
+    await helpers.takeFullPageScreenshot("dashboard")
   })
 
   test("dashboard responsive layouts", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.testResponsiveLayout("admin-dashboard")
+    await page.goto("/dashboard")
+    await helpers.testResponsiveLayout("dashboard")
   })
 
   test("dashboard theme variations", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.testThemeVariations("admin-dashboard")
+    await page.goto("/dashboard")
+    await helpers.testThemeVariations("dashboard")
   })
 
-  test("dashboard with founder role", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
+  test("dashboard sidebar", async ({ page }) => {
+    await page.goto("/dashboard")
+    await helpers.takeElementScreenshot('[data-testid="sidebar"]', "dashboard-sidebar")
+  })
+
+  test("dashboard metrics cards", async ({ page }) => {
+    await page.goto("/dashboard")
+    await helpers.takeElementScreenshot('[data-testid="metrics-cards"]', "dashboard-metrics")
+  })
+
+  test("dashboard revenue chart", async ({ page }) => {
+    await page.goto("/dashboard")
+    await helpers.takeElementScreenshot('[data-testid="revenue-chart"]', "dashboard-revenue-chart")
+  })
+
+  test("dashboard user acquisition map", async ({ page }) => {
+    await page.goto("/dashboard")
+    await helpers.takeElementScreenshot('[data-testid="user-acquisition-map"]', "dashboard-user-map")
+  })
+
+  test("dashboard with founder access", async ({ page }) => {
     await helpers.setupAuth("founder")
-    await page.reload()
+    await page.goto("/dashboard")
     await helpers.takeFullPageScreenshot("dashboard-founder")
   })
 
-  test("dashboard quick actions", async ({ page }) => {
-    const helpers = new ScreenshotHelpers(page)
-    await helpers.takeElementScreenshot('[data-testid="quick-actions"]', "dashboard-quick-actions")
+  test("dashboard loading state", async ({ page }) => {
+    // Intercept API calls to simulate loading
+    await page.route("**/api/dashboard/metrics", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await route.continue()
+    })
+
+    await page.goto("/dashboard")
+    await helpers.takeFullPageScreenshot("dashboard-loading")
   })
 })
