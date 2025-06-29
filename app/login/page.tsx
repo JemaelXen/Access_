@@ -3,140 +3,173 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useAuth } from "@/contexts/auth-context"
+import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Facebook, Github, Twitter } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Github, Chrome } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
   const { login } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
     setIsLoading(true)
+    setError("")
 
     try {
       await login(email, password)
-      router.push("/social")
-    } catch (err) {
-      setError("Invalid email or password")
+      toast.success("Welcome back!")
+      router.push("/dashboard")
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password")
+      toast.error("Login failed. Please check your credentials.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  return (
-    <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)] px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 flex flex-col items-center">
-          <div className="mb-2">
-            <Logo size="md" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+  const handleSocialLogin = (provider: string) => {
+    toast.info(`${provider} login coming soon!`)
+  }
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
+  return (
+    <div className="min-h-screen flex items-center justify-center py-12 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md"
+      >
+        <Card className="glass-effect shadow-2xl">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle className="text-3xl font-bold font-heading">Welcome Back</CardTitle>
+            <CardDescription className="text-base">Sign in to your Project Access account</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 input-field"
+                    required
+                    data-testid="email-input"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                >
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 input-field"
+                    required
+                    data-testid="password-input"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
-            </Button>
-          </form>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or continue with</span>
-            </div>
-          </div>
+              <Button
+                type="submit"
+                className="w-full btn-primary group"
+                disabled={isLoading}
+                data-testid="login-button"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Signing in...
+                  </div>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </form>
 
-          <div className="grid grid-cols-3 gap-3">
-            <Button variant="outline" className="w-full">
-              <Facebook size={16} className="mr-2" />
-              Facebook
-            </Button>
-            <Button variant="outline" className="w-full">
-              <Twitter size={16} className="mr-2" />
-              Twitter
-            </Button>
-            <Button variant="outline" className="w-full">
-              <Github size={16} className="mr-2" />
-              GitHub
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
-            >
-              Sign up
-            </Link>
-          </div>
-          <div className="text-center text-xs text-gray-500 dark:text-gray-500">
-            By signing in, you agree to our{" "}
-            <Link href="/terms" className="underline">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link href="/privacy" className="underline">
-              Privacy Policy
-            </Link>
-            .
-          </div>
-        </CardFooter>
-      </Card>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline" onClick={() => handleSocialLogin("Google")} className="w-full">
+                <Chrome className="mr-2 h-4 w-4" />
+                Google
+              </Button>
+              <Button variant="outline" onClick={() => handleSocialLogin("GitHub")} className="w-full">
+                <Github className="mr-2 h-4 w-4" />
+                GitHub
+              </Button>
+            </div>
+
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">Don't have an account? </span>
+              <Link href="/signup" className="text-primary hover:underline font-medium">
+                Sign up
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   )
 }

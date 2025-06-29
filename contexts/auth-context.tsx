@@ -1,187 +1,154 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import type React from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
-export type User = {
+interface User {
   id: string
   name: string
   email: string
   username: string
-  avatar?: string
-  role: "user" | "admin" | "founder" | "elite" | "partner"
+  role: "user" | "admin" | "founder"
   verified: boolean
-  joinDate: string
-  followers: number
-  following: number
-  posts: number
-  investmentTier?: "starter" | "pro" | "elite" | "partner"
-  specialAccess?: string[]
-  bio?: string
-  location?: string
-  website?: string
-  birthDate?: string
+  avatar?: string
+  createdAt: string
 }
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  signup: (name: string, email: string, password: string) => Promise<void>
+  register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
   updateUser: (userData: Partial<User>) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    // Check for existing session
+    const token = localStorage.getItem("auth-token")
+    const userData = localStorage.getItem("user-data")
+
+    if (token && userData) {
       try {
-        const storedUser = localStorage.getItem("project_access_user")
-        if (storedUser) {
-          setUser(JSON.parse(storedUser))
-        }
-      } catch (e) {
-        console.error("Failed to parse user data:", e)
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("project_access_user")
-        }
-      } finally {
-        setIsLoading(false)
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+      } catch (error) {
+        console.error("Error parsing user data:", error)
+        localStorage.removeItem("auth-token")
+        localStorage.removeItem("user-data")
       }
     }
+
+    setIsLoading(false)
   }, [])
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
+
     try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock user data based on email
       let mockUser: User
 
-      // Founder account (Jemael Xenn)
-      if (email === "founder@projectaccess.co" || email === "jemael@projectaccess.co") {
+      if (email === "founder@projectaccess.co") {
         mockUser = {
           id: "founder-001",
           name: "Jemael Xenn",
-          email: email,
+          email: "founder@projectaccess.co",
           username: "jemael",
-          avatar: "/placeholder.svg?height=100&width=100",
           role: "founder",
           verified: true,
-          joinDate: "January 2024",
-          followers: 2500000,
-          following: 1000,
-          posts: 1250,
-          investmentTier: "partner",
-          specialAccess: ["all", "founder-controls", "admin-panel", "analytics", "user-management"],
-          bio: "Founder & CEO of Project Access. Building the future of social media and investment platforms.",
-          location: "Philippines",
-          website: "https://projectaccess.co",
+          avatar: "/placeholder-user.jpg",
+          createdAt: "2024-01-01T00:00:00Z",
         }
-      }
-      // Admin accounts
-      else if (email === "admin@projectaccess.co") {
+      } else if (email === "admin@projectaccess.co") {
         mockUser = {
           id: "admin-001",
           name: "Admin User",
-          email: email,
+          email: "admin@projectaccess.co",
           username: "admin",
-          avatar: "/placeholder.svg?height=100&width=100",
           role: "admin",
           verified: true,
-          joinDate: "February 2024",
-          followers: 50000,
-          following: 500,
-          posts: 320,
-          investmentTier: "elite",
-          specialAccess: ["admin-panel", "user-management", "content-moderation"],
-          bio: "Project Access Administrator",
-          location: "Global",
+          avatar: "/placeholder-user.jpg",
+          createdAt: "2024-01-01T00:00:00Z",
         }
-      }
-      // Elite user
-      else if (email === "elite@projectaccess.co") {
+      } else {
         mockUser = {
-          id: "elite-001",
-          name: "Elite Member",
-          email: email,
-          username: "elite",
-          avatar: "/placeholder.svg?height=100&width=100",
-          role: "elite",
-          verified: true,
-          joinDate: "March 2024",
-          followers: 100000,
-          following: 200,
-          posts: 150,
-          investmentTier: "elite",
-          specialAccess: ["elite-club", "premium-features"],
-          bio: "Elite member of Project Access",
-          location: "New York, USA",
-        }
-      }
-      // Regular user
-      else {
-        mockUser = {
-          id: Date.now().toString(),
-          name: "New User",
+          id: "user-001",
+          name: "John Doe",
           email: email,
           username: email.split("@")[0],
-          avatar: "/placeholder.svg?height=100&width=100",
           role: "user",
           verified: false,
-          joinDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-          followers: 0,
-          following: 0,
-          posts: 0,
-          bio: "New to Project Access",
+          avatar: "/placeholder-user.jpg",
+          createdAt: new Date().toISOString(),
         }
       }
 
+      // Store auth data
+      const token = "mock-jwt-token-" + Date.now()
+      localStorage.setItem("auth-token", token)
+      localStorage.setItem("user-data", JSON.stringify(mockUser))
+      localStorage.setItem("user-role", mockUser.role)
+      localStorage.setItem("user-id", mockUser.id)
+
       setUser(mockUser)
-      localStorage.setItem("project_access_user", JSON.stringify(mockUser))
     } catch (error) {
-      console.error("Login failed:", error)
-      throw error
+      throw new Error("Invalid email or password")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const signup = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string) => {
     setIsLoading(true)
+
     try {
-      const mockUser: User = {
-        id: Date.now().toString(),
-        name: name,
-        email: email,
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const newUser: User = {
+        id: "user-" + Date.now(),
+        name,
+        email,
         username: email.split("@")[0],
-        avatar: "/placeholder.svg?height=100&width=100",
         role: "user",
         verified: false,
-        joinDate: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-        followers: 0,
-        following: 0,
-        posts: 0,
-        bio: `Welcome to Project Access! I'm ${name}.`,
+        avatar: "/placeholder-user.jpg",
+        createdAt: new Date().toISOString(),
       }
 
-      setUser(mockUser)
-      localStorage.setItem("project_access_user", JSON.stringify(mockUser))
+      // Store auth data
+      const token = "mock-jwt-token-" + Date.now()
+      localStorage.setItem("auth-token", token)
+      localStorage.setItem("user-data", JSON.stringify(newUser))
+      localStorage.setItem("user-role", newUser.role)
+      localStorage.setItem("user-id", newUser.id)
+
+      setUser(newUser)
     } catch (error) {
-      console.error("Signup failed:", error)
-      throw error
+      throw new Error("Failed to create account")
     } finally {
       setIsLoading(false)
     }
   }
 
   const logout = () => {
+    localStorage.removeItem("auth-token")
+    localStorage.removeItem("user-data")
+    localStorage.removeItem("user-role")
+    localStorage.removeItem("user-id")
     setUser(null)
-    localStorage.removeItem("project_access_user")
     router.push("/")
   }
 
@@ -189,12 +156,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const updatedUser = { ...user, ...userData }
       setUser(updatedUser)
-      localStorage.setItem("project_access_user", JSON.stringify(updatedUser))
+      localStorage.setItem("user-data", JSON.stringify(updatedUser))
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        login,
+        register,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
@@ -203,23 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    console.error("useAuth must be used within an AuthProvider")
-    return {
-      user: null,
-      isLoading: false,
-      login: async () => {
-        console.error("Auth provider not found")
-      },
-      signup: async () => {
-        console.error("Auth provider not found")
-      },
-      logout: () => {
-        console.error("Auth provider not found")
-      },
-      updateUser: () => {
-        console.error("Auth provider not found")
-      },
-    }
+    throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
 }
