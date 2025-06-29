@@ -11,344 +11,424 @@ import {
   Users,
   TrendingUp,
   DollarSign,
-  Activity,
+  ActivityIcon,
   ArrowUpRight,
-  ArrowDownRight,
+  MessageCircle,
+  Bell,
   Calendar,
-  Filter,
-  Download,
+  Target,
+  Zap,
+  BarChart3,
+  PieChart,
+  LineChart,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { RevenueChart } from "@/components/revenue-chart"
 import { UserAcquisitionMap } from "@/components/user-acquisition-map"
-import { redirect } from "next/navigation"
 
-const metrics = [
-  {
-    title: "Total Revenue",
-    value: "$45,231.89",
-    change: "+20.1%",
-    trend: "up",
-    icon: DollarSign,
-    description: "from last month",
-  },
-  {
-    title: "Active Users",
-    value: "2,350",
-    change: "+180.1%",
-    trend: "up",
-    icon: Users,
-    description: "from last month",
-  },
-  {
-    title: "Conversion Rate",
-    value: "12.5%",
-    change: "+19%",
-    trend: "up",
-    icon: TrendingUp,
-    description: "from last month",
-  },
-  {
-    title: "API Calls",
-    value: "573,000",
-    change: "+201",
-    trend: "up",
-    icon: Activity,
-    description: "from last month",
-  },
-]
+interface DashboardStats {
+  totalUsers: number
+  activeUsers: number
+  revenue: number
+  growth: number
+  engagement: number
+  conversions: number
+}
 
-const recentActivity = [
-  {
-    id: 1,
-    user: "John Doe",
-    action: "Created new integration",
-    time: "2 minutes ago",
-    status: "success",
-  },
-  {
-    id: 2,
-    user: "Sarah Wilson",
-    action: "Updated API settings",
-    time: "5 minutes ago",
-    status: "info",
-  },
-  {
-    id: 3,
-    user: "Mike Johnson",
-    action: "Deployed to production",
-    time: "10 minutes ago",
-    status: "success",
-  },
-  {
-    id: 4,
-    user: "Emily Chen",
-    action: "API rate limit exceeded",
-    time: "15 minutes ago",
-    status: "warning",
-  },
-  {
-    id: 5,
-    user: "David Brown",
-    action: "Integration failed",
-    time: "20 minutes ago",
-    status: "error",
-  },
-]
-
-const topIntegrations = [
-  { name: "Salesforce", users: 1234, growth: 12.5 },
-  { name: "HubSpot", users: 987, growth: 8.3 },
-  { name: "Slack", users: 756, growth: 15.7 },
-  { name: "Stripe", users: 654, growth: 22.1 },
-  { name: "Zoom", users: 543, growth: 5.9 },
-]
+interface Activity {
+  id: string
+  type: "investment" | "social" | "partnership" | "achievement"
+  title: string
+  description: string
+  timestamp: string
+  amount?: number
+  status: "success" | "pending" | "warning"
+}
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const [mounted, setMounted] = useState(false)
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    activeUsers: 0,
+    revenue: 0,
+    growth: 0,
+    engagement: 0,
+    conversions: 0,
+  })
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    // Simulate API call to fetch dashboard data
+    const fetchDashboardData = async () => {
+      setIsLoading(true)
 
-  useEffect(() => {
-    if (mounted && !user) {
-      redirect("/login")
+      // Simulate loading delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock data based on user role
+      const mockStats: DashboardStats = {
+        totalUsers: user?.role === "founder" ? 52847 : user?.role === "admin" ? 15234 : 1247,
+        activeUsers: user?.role === "founder" ? 34521 : user?.role === "admin" ? 8934 : 892,
+        revenue: user?.role === "founder" ? 2847392 : user?.role === "admin" ? 145678 : 12450,
+        growth: user?.role === "founder" ? 23.5 : user?.role === "admin" ? 18.2 : 12.8,
+        engagement: user?.role === "founder" ? 87.3 : user?.role === "admin" ? 76.4 : 68.9,
+        conversions: user?.role === "founder" ? 94.2 : user?.role === "admin" ? 82.1 : 71.5,
+      }
+
+      const mockActivities: Activity[] = [
+        {
+          id: "1",
+          type: "investment",
+          title: "New Investment Opportunity",
+          description: "TechStart Inc. Series A funding round",
+          timestamp: "2 hours ago",
+          amount: 50000,
+          status: "success",
+        },
+        {
+          id: "2",
+          type: "social",
+          title: "New Connection",
+          description: "Sarah Johnson wants to connect",
+          timestamp: "4 hours ago",
+          status: "pending",
+        },
+        {
+          id: "3",
+          type: "partnership",
+          title: "Partnership Proposal",
+          description: "Global Ventures partnership opportunity",
+          timestamp: "6 hours ago",
+          status: "warning",
+        },
+        {
+          id: "4",
+          type: "achievement",
+          title: "Milestone Reached",
+          description: "Congratulations! You've reached 1000 connections",
+          timestamp: "1 day ago",
+          status: "success",
+        },
+      ]
+
+      setStats(mockStats)
+      setActivities(mockActivities)
+      setIsLoading(false)
     }
-  }, [user, mounted])
 
-  if (!mounted || !user) {
+    fetchDashboardData()
+  }, [user])
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
+
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat("en-US").format(num)
+  }
+
+  const getActivityIcon = (type: Activity["type"]) => {
+    switch (type) {
+      case "investment":
+        return <TrendingUp className="h-4 w-4" />
+      case "social":
+        return <Users className="h-4 w-4" />
+      case "partnership":
+        return <MessageCircle className="h-4 w-4" />
+      case "achievement":
+        return <Target className="h-4 w-4" />
+      default:
+        return <ActivityIcon className="h-4 w-4" />
+    }
+  }
+
+  const getStatusColor = (status: Activity["status"]) => {
+    switch (status) {
+      case "success":
+        return "text-green-600 bg-green-100 dark:bg-green-900/20"
+      case "pending":
+        return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20"
+      case "warning":
+        return "text-orange-600 bg-orange-100 dark:bg-orange-900/20"
+      default:
+        return "text-gray-600 bg-gray-100 dark:bg-gray-900/20"
+    }
+  }
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="loading-dots">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
       </div>
     )
   }
 
-  if (user.role === "user") {
-    redirect("/social")
-  }
-
   return (
-    <div className="min-h-screen p-6">
-      <div className="container mx-auto space-y-8">
+    <div className="min-h-screen p-6 space-y-8">
+      <div className="container mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
+        >
           <div>
-            <h1 className="text-3xl font-bold font-heading">Welcome back, {user.name}</h1>
-            <p className="text-muted-foreground">Here's what's happening with your platform today.</p>
+            <h1 className="text-3xl font-bold font-heading mb-2">Welcome back, {user?.name}!</h1>
+            <p className="text-muted-foreground">
+              Here's what's happening with your{" "}
+              {user?.role === "founder" ? "platform" : user?.role === "admin" ? "admin panel" : "account"} today.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 mt-4 md:mt-0">
             <Button variant="outline" size="sm">
-              <Calendar className="mr-2 h-4 w-4" />
+              <Calendar className="h-4 w-4 mr-2" />
               Last 30 days
             </Button>
-            <Button variant="outline" size="sm">
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export
+            <Button size="sm" className="btn-primary">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
             </Button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="metrics-cards">
-          {metrics.map((metric, index) => (
-            <motion.div
-              key={metric.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <Card className="glass-effect card-hover" data-testid="metric-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
-                  <metric.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{metric.value}</div>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    {metric.trend === "up" ? (
-                      <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
-                    )}
-                    <span className={metric.trend === "up" ? "text-green-500" : "text-red-500"}>{metric.change}</span>
-                    <span className="ml-1">{metric.description}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        >
+          <Card className="glass-effect">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatNumber(stats.totalUsers)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600 flex items-center">
+                  <ArrowUpRight className="h-3 w-3 mr-1" />+{stats.growth}%
+                </span>
+                from last month
+              </p>
+            </CardContent>
+          </Card>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" data-testid="charts-section">
+          <Card className="glass-effect">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <ActivityIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatNumber(stats.activeUsers)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600 flex items-center">
+                  <ArrowUpRight className="h-3 w-3 mr-1" />+{(stats.growth * 0.8).toFixed(1)}%
+                </span>
+                from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-effect">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(stats.revenue)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600 flex items-center">
+                  <ArrowUpRight className="h-3 w-3 mr-1" />+{(stats.growth * 1.2).toFixed(1)}%
+                </span>
+                from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="glass-effect">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Engagement</CardTitle>
+              <Zap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.engagement}%</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600 flex items-center">
+                  <ArrowUpRight className="h-3 w-3 mr-1" />
+                  +2.1%
+                </span>
+                from last month
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Charts Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-2 space-y-6"
           >
-            <Card className="glass-effect">
-              <CardHeader>
-                <CardTitle>Revenue Overview</CardTitle>
-                <CardDescription>Monthly revenue for the last 12 months</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RevenueChart />
-              </CardContent>
-            </Card>
+            <Tabs defaultValue="revenue" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="revenue" className="flex items-center gap-2">
+                  <LineChart className="h-4 w-4" />
+                  Revenue
+                </TabsTrigger>
+                <TabsTrigger value="users" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Users
+                </TabsTrigger>
+                <TabsTrigger value="engagement" className="flex items-center gap-2">
+                  <PieChart className="h-4 w-4" />
+                  Engagement
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="revenue" className="space-y-4">
+                <Card className="glass-effect">
+                  <CardHeader>
+                    <CardTitle>Revenue Overview</CardTitle>
+                    <CardDescription>Monthly revenue trends and projections</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <RevenueChart />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="users" className="space-y-4">
+                <Card className="glass-effect">
+                  <CardHeader>
+                    <CardTitle>User Acquisition</CardTitle>
+                    <CardDescription>Geographic distribution of new users</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <UserAcquisitionMap />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="engagement" className="space-y-4">
+                <Card className="glass-effect">
+                  <CardHeader>
+                    <CardTitle>Engagement Metrics</CardTitle>
+                    <CardDescription>User engagement and activity levels</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Daily Active Users</span>
+                        <span className="text-sm text-muted-foreground">{stats.engagement}%</span>
+                      </div>
+                      <Progress value={stats.engagement} className="h-2" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Session Duration</span>
+                        <span className="text-sm text-muted-foreground">{(stats.engagement * 0.9).toFixed(1)}%</span>
+                      </div>
+                      <Progress value={stats.engagement * 0.9} className="h-2" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Conversion Rate</span>
+                        <span className="text-sm text-muted-foreground">{stats.conversions}%</span>
+                      </div>
+                      <Progress value={stats.conversions} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </motion.div>
 
+          {/* Activity Feed */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
+            className="space-y-6"
           >
             <Card className="glass-effect">
               <CardHeader>
-                <CardTitle>User Acquisition</CardTitle>
-                <CardDescription>Geographic distribution of new users</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <ActivityIcon className="h-5 w-5" />
+                  Recent Activity
+                </CardTitle>
+                <CardDescription>Your latest updates and notifications</CardDescription>
               </CardHeader>
-              <CardContent>
-                <UserAcquisitionMap />
+              <CardContent className="space-y-4">
+                {activities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className={`p-2 rounded-full ${getStatusColor(activity.status)}`}>
+                      {getActivityIcon(activity.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{activity.title}</p>
+                      <p className="text-xs text-muted-foreground">{activity.description}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-muted-foreground">{activity.timestamp}</span>
+                        {activity.amount && (
+                          <Badge variant="secondary" className="text-xs">
+                            {formatCurrency(activity.amount)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card className="glass-effect">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Common tasks and shortcuts</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="outline" className="w-full justify-start bg-transparent">
+                  <Users className="h-4 w-4 mr-2" />
+                  View Connections
+                </Button>
+                <Button variant="outline" className="w-full justify-start bg-transparent">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Investment Portfolio
+                </Button>
+                <Button variant="outline" className="w-full justify-start bg-transparent">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Messages
+                </Button>
+                <Button variant="outline" className="w-full justify-start bg-transparent">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </Button>
               </CardContent>
             </Card>
           </motion.div>
         </div>
-
-        {/* Tabs Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Tabs defaultValue="activity" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="activity">Recent Activity</TabsTrigger>
-              <TabsTrigger value="integrations">Top Integrations</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="activity" className="space-y-4">
-              <Card className="glass-effect">
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Latest actions and events on your platform</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentActivity.map((activity) => (
-                      <div key={activity.id} className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-2 h-2 rounded-full bg-primary" />
-                          <div>
-                            <p className="font-medium">{activity.user}</p>
-                            <p className="text-sm text-muted-foreground">{activity.action}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              activity.status === "success"
-                                ? "default"
-                                : activity.status === "warning"
-                                  ? "secondary"
-                                  : activity.status === "error"
-                                    ? "destructive"
-                                    : "outline"
-                            }
-                          >
-                            {activity.status}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">{activity.time}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="integrations" className="space-y-4">
-              <Card className="glass-effect">
-                <CardHeader>
-                  <CardTitle>Top Integrations</CardTitle>
-                  <CardDescription>Most popular integrations by user count</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {topIntegrations.map((integration, index) => (
-                      <div key={integration.name} className="flex items-center justify-between p-4 rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium">{integration.name}</p>
-                            <p className="text-sm text-muted-foreground">{integration.users.toLocaleString()} users</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-green-500">+{integration.growth}%</p>
-                            <p className="text-xs text-muted-foreground">growth</p>
-                          </div>
-                          <Progress value={integration.growth} className="w-20" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="analytics" className="space-y-4">
-              <Card className="glass-effect">
-                <CardHeader>
-                  <CardTitle>Analytics Overview</CardTitle>
-                  <CardDescription>Detailed analytics and insights</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">API Success Rate</span>
-                        <span className="text-sm text-muted-foreground">99.2%</span>
-                      </div>
-                      <Progress value={99.2} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">User Satisfaction</span>
-                        <span className="text-sm text-muted-foreground">94.8%</span>
-                      </div>
-                      <Progress value={94.8} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">System Uptime</span>
-                        <span className="text-sm text-muted-foreground">99.9%</span>
-                      </div>
-                      <Progress value={99.9} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Response Time</span>
-                        <span className="text-sm text-muted-foreground">120ms</span>
-                      </div>
-                      <Progress value={85} className="h-2" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
       </div>
     </div>
   )

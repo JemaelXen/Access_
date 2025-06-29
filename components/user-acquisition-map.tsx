@@ -1,39 +1,49 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
-const regions = [
-  { name: "North America", users: 12500, growth: 15.2, color: "bg-blue-500" },
-  { name: "Europe", users: 8900, growth: 12.8, color: "bg-green-500" },
-  { name: "Asia Pacific", users: 6700, growth: 22.1, color: "bg-purple-500" },
-  { name: "South America", users: 3200, growth: 8.5, color: "bg-orange-500" },
-  { name: "Africa", users: 1800, growth: 18.9, color: "bg-pink-500" },
+const data = [
+  { country: "USA", users: 12500, growth: 15.2 },
+  { country: "UK", users: 8900, growth: 12.8 },
+  { country: "Germany", users: 7200, growth: 18.5 },
+  { country: "France", users: 6800, growth: 14.3 },
+  { country: "Canada", users: 5400, growth: 22.1 },
+  { country: "Australia", users: 4200, growth: 19.7 },
+  { country: "Japan", users: 3800, growth: 16.9 },
+  { country: "Brazil", users: 3200, growth: 25.4 },
 ]
 
 export function UserAcquisitionMap() {
   return (
-    <div className="space-y-4" data-testid="user-acquisition-map">
-      <div className="grid grid-cols-1 gap-4">
-        {regions.map((region) => (
-          <Card key={region.name} className="p-4">
-            <CardContent className="p-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${region.color}`} />
-                  <div>
-                    <p className="font-medium">{region.name}</p>
-                    <p className="text-sm text-muted-foreground">{region.users.toLocaleString()} users</p>
-                  </div>
-                </div>
-                <Badge variant="secondary" className="text-green-600">
-                  +{region.growth}%
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    <div className="h-[300px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+          <XAxis dataKey="country" className="text-xs fill-muted-foreground" tick={{ fontSize: 12 }} />
+          <YAxis
+            className="text-xs fill-muted-foreground"
+            tick={{ fontSize: 12 }}
+            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "8px",
+            }}
+            formatter={(value: number, name: string) => [
+              name === "users" ? `${value.toLocaleString()} users` : `${value}% growth`,
+              name === "users" ? "Total Users" : "Growth Rate",
+            ]}
+          />
+          <Bar
+            dataKey="users"
+            fill="hsl(var(--primary))"
+            radius={[4, 4, 0, 0]}
+            className="hover:opacity-80 transition-opacity"
+          />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   )
 }
