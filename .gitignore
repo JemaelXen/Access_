@@ -10,8 +10,12 @@
 /coverage
 /test-results/
 /playwright-report/
-/blob-report/
 /playwright/.cache/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
 
 # next.js
 /.next/
@@ -39,7 +43,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Visual test artifacts
-/tests/visual/**/*-actual.png
-/tests/visual/**/*-diff.png
-/tests/visual/**/*-expected.png
+# Visual testing
+test-results/
+playwright-report/
+tests/visual/**/*.png
+tests/visual/**/*.jpg
+tests/visual/**/*.jpeg
+!tests/visual/baseline/**

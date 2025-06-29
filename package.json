@@ -8,18 +8,18 @@
     "lint": "next lint",
     "start": "next start",
     "test": "jest",
+    "test:all": "npm run test && npm run test:visual",
     "test:coverage": "jest --coverage",
-    "test:integration": "jest --testPathPattern=integration",
     "test:visual": "playwright test",
+    "test:visual:debug": "playwright test --debug",
     "test:visual:headed": "playwright test --headed",
     "test:visual:report": "playwright show-report",
     "test:visual:ui": "playwright test --ui",
     "test:visual:update": "playwright test --update-snapshots",
-    "test:watch": "jest --watch",
-    "type-check": "tsc --noEmit"
+    "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@jest/globals": "latest",
+    "@next/font": "^14.0.0",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",

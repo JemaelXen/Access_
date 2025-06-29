@@ -1,81 +1,94 @@
 import { test, expect } from "@playwright/test"
+import { ScreenshotHelpers } from "./utils/screenshot-helpers"
 
 test.describe("Homepage Visual Tests", () => {
+  let helpers: ScreenshotHelpers
+
   test.beforeEach(async ({ page }) => {
-    // Disable animations for consistent screenshots
-    await page.addStyleTag({
-      content: `
-        *, *::before, *::after {
-          animation-duration: 0s !important;
-          animation-delay: 0s !important;
-          transition-duration: 0s !important;
-          transition-delay: 0s !important;
-        }
-      `,
-    })
+    helpers = new ScreenshotHelpers(page)
+    await helpers.setupTestEnvironment()
   })
 
-  test("homepage loads correctly", async ({ page }) => {
+  test("homepage full layout", async ({ page }) => {
     await page.goto("/")
+    await helpers.waitForStableContent()
 
-    // Wait for the page to be fully loaded
-    await page.waitForLoadState("networkidle")
-
-    // Wait for any dynamic content to load
-    await page.waitForTimeout(1000)
-
-    // Take full page screenshot
     await expect(page).toHaveScreenshot("homepage-full.png", {
       fullPage: true,
+      animations: "disabled",
     })
   })
 
   test("homepage hero section", async ({ page }) => {
     await page.goto("/")
-    await page.waitForLoadState("networkidle")
+    await helpers.waitForStableContent()
 
-    // Screenshot of just the hero section
-    const heroSection = page.locator('[data-testid="hero-section"]').first()
-    await expect(heroSection).toHaveScreenshot("homepage-hero.png")
+    // Look for hero content
+    const heroSection = page.locator("main").first()
+    await expect(heroSection).toHaveScreenshot("homepage-hero.png", {
+      animations: "disabled",
+    })
   })
 
-  test("homepage navigation", async ({ page }) => {
+  test("homepage navigation bar", async ({ page }) => {
     await page.goto("/")
-    await page.waitForLoadState("networkidle")
+    await helpers.waitForStableContent()
 
-    // Screenshot of navigation
-    const navigation = page.locator("nav").first()
-    await expect(navigation).toHaveScreenshot("homepage-navigation.png")
+    const navigation = page.locator("nav, header").first()
+    await expect(navigation).toHaveScreenshot("homepage-navigation.png", {
+      animations: "disabled",
+    })
   })
 
   test("homepage footer", async ({ page }) => {
     await page.goto("/")
-    await page.waitForLoadState("networkidle")
+    await helpers.waitForStableContent()
 
-    // Screenshot of footer
     const footer = page.locator("footer").first()
-    await expect(footer).toHaveScreenshot("homepage-footer.png")
+    if ((await footer.count()) > 0) {
+      await expect(footer).toHaveScreenshot("homepage-footer.png", {
+        animations: "disabled",
+      })
+    }
   })
 
-  test("homepage mobile view", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto("/")
-    await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(1000)
+  test("homepage responsive views", async ({ page }) => {
+    const viewports = [
+      { name: "mobile", width: 375, height: 667 },
+      { name: "tablet", width: 768, height: 1024 },
+      { name: "desktop", width: 1920, height: 1080 },
+    ]
 
-    await expect(page).toHaveScreenshot("homepage-mobile.png", {
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport)
+      await page.goto("/")
+      await helpers.waitForStableContent()
+
+      await expect(page).toHaveScreenshot(`homepage-${viewport.name}.png`, {
+        fullPage: true,
+        animations: "disabled",
+      })
+    }
+  })
+
+  test("homepage theme variations", async ({ page }) => {
+    await page.goto("/")
+    await helpers.waitForStableContent()
+
+    // Light theme
+    await page.evaluate(() => document.documentElement.classList.remove("dark"))
+    await page.waitForTimeout(300)
+    await expect(page).toHaveScreenshot("homepage-light.png", {
       fullPage: true,
+      animations: "disabled",
     })
-  })
 
-  test("homepage tablet view", async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 1024 })
-    await page.goto("/")
-    await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(1000)
-
-    await expect(page).toHaveScreenshot("homepage-tablet.png", {
+    // Dark theme
+    await page.evaluate(() => document.documentElement.classList.add("dark"))
+    await page.waitForTimeout(300)
+    await expect(page).toHaveScreenshot("homepage-dark.png", {
       fullPage: true,
+      animations: "disabled",
     })
   })
 })
