@@ -11,11 +11,6 @@
 /test-results/
 /playwright-report/
 /playwright/.cache/
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.webp
 
 # next.js
 /.next/
@@ -44,9 +39,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Visual testing
-test-results/
-playwright-report/
-tests/visual/**/*.png
-tests/visual/**/*.jpg
-tests/visual/**/*.jpeg
-!tests/visual/baseline/**
+/tests/visual/**/*.png
+!/tests/visual/**/*-expected.png
+/test-results/
+/playwright-report/

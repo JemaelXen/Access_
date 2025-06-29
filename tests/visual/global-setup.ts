@@ -1,44 +1,50 @@
 import { chromium, type FullConfig } from "@playwright/test"
 
 async function globalSetup(config: FullConfig) {
-  const { baseURL } = config.projects[0].use
+  console.log("🚀 Starting global setup for visual tests...")
 
-  // Launch browser for setup
+  // Set up test database or mock data if needed
+  if (process.env.CI) {
+    console.log("Running in CI environment")
+    // CI-specific setup
+    process.env.NODE_ENV = "test"
+    process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000/api"
+  } else {
+    console.log("Running in local development environment")
+    // Local development setup
+    process.env.NODE_ENV = "development"
+    process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000/api"
+  }
+
+  // Launch browser for authentication setup
   const browser = await chromium.launch()
-  const page = await browser.newPage()
+  const context = await browser.newContext()
+  const page = await context.newPage()
 
   try {
-    // Wait for the dev server to be ready
-    console.log("Waiting for dev server to be ready...")
-    await page.goto(baseURL!)
-    await page.waitForLoadState("networkidle")
-    console.log("Dev server is ready!")
+    // Navigate to the app to ensure it's running
+    await page.goto("http://localhost:3000", { waitUntil: "networkidle" })
+    console.log("✅ Application is running and accessible")
 
-    // Pre-warm the application by visiting key pages
-    const pagesToWarm = [
-      "/",
-      "/dashboard",
-      "/social",
-      "/login",
-      "/signup",
-      "/founder/monitoring-dashboard",
-      "/founder/api-management/integration-analytics",
-    ]
+    // Set up authentication tokens for different user types
+    await page.evaluate(() => {
+      // Mock authentication tokens
+      localStorage.setItem("auth-token", "mock-test-token-12345")
+      localStorage.setItem("user-role", "admin")
+      localStorage.setItem("user-id", "test-user-123")
+      localStorage.setItem("user-name", "Test User")
+      localStorage.setItem("user-email", "test@example.com")
+    })
 
-    for (const url of pagesToWarm) {
-      try {
-        await page.goto(`${baseURL}${url}`)
-        await page.waitForLoadState("networkidle", { timeout: 10000 })
-      } catch (error) {
-        console.warn(`Failed to warm up ${url}:`, error)
-      }
-    }
+    console.log("✅ Authentication setup completed")
   } catch (error) {
-    console.error("Global setup failed:", error)
+    console.error("❌ Global setup failed:", error)
     throw error
   } finally {
     await browser.close()
   }
+
+  console.log("✅ Global setup completed successfully")
 }
 
 export default globalSetup

@@ -1,88 +1,65 @@
-import { test, expect } from "@playwright/test"
+import { test } from "@playwright/test"
 import { ScreenshotHelpers } from "./utils/screenshot-helpers"
 
 test.describe("Integration Hub Visual Tests", () => {
-  let helpers: ScreenshotHelpers
-
   test.beforeEach(async ({ page }) => {
-    helpers = new ScreenshotHelpers(page)
-    await helpers.setupTestEnvironment()
-    await helpers.mockAuthenticatedUser("founder")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.setFixedTime()
+    await helpers.mockApiResponses()
+    await helpers.setupAuth("admin")
   })
 
   test("integration analytics dashboard", async ({ page }) => {
     await page.goto("/founder/api-management/integration-analytics")
-    await helpers.waitForStableContent()
-
-    await expect(page).toHaveScreenshot("integration-analytics-dashboard.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("integration-analytics")
   })
 
-  test("integration heatmap visualization", async ({ page }) => {
+  test("integration heatmap", async ({ page }) => {
     await page.goto("/founder/api-management/integration-analytics")
-    await helpers.waitForStableContent()
-
-    // Look for heatmap or visualization components
-    const heatmap = page.locator('[class*="heatmap"], svg, canvas, [data-testid*="heatmap"]').first()
-    if ((await heatmap.count()) > 0) {
-      await expect(heatmap).toHaveScreenshot("integration-heatmap.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="integration-heatmap"]', "integration-heatmap")
   })
 
   test("integration builder canvas", async ({ page }) => {
     await page.goto("/founder/api-management/integration-builder")
-    await helpers.waitForStableContent()
-
-    await expect(page).toHaveScreenshot("integration-builder-canvas.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("integration-builder")
   })
 
   test("integration node library", async ({ page }) => {
     await page.goto("/founder/api-management/integration-builder")
-    await helpers.waitForStableContent()
-
-    // Look for node library or component palette
-    const nodeLibrary = page.locator('[class*="library"], [class*="palette"], [class*="nodes"]').first()
-    if ((await nodeLibrary.count()) > 0) {
-      await expect(nodeLibrary).toHaveScreenshot("integration-node-library.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="node-library"]', "integration-nodes")
   })
 
-  test("peer groups comparison", async ({ page }) => {
+  test("peer groups overview", async ({ page }) => {
     await page.goto("/founder/api-management/peer-groups")
-    await helpers.waitForStableContent()
-
-    await expect(page).toHaveScreenshot("peer-groups-comparison.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("peer-groups")
   })
 
   test("vertical peer groups", async ({ page }) => {
     await page.goto("/founder/api-management/vertical-peer-groups")
-    await helpers.waitForStableContent()
-
-    await expect(page).toHaveScreenshot("vertical-peer-groups.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("vertical-peer-groups")
   })
 
   test("integration benchmarks", async ({ page }) => {
     await page.goto("/founder/api-management/integration-benchmarks")
-    await helpers.waitForStableContent()
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("integration-benchmarks")
+  })
 
-    await expect(page).toHaveScreenshot("integration-benchmarks.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+  test("integration hub responsive layouts", async ({ page }) => {
+    await page.goto("/founder/api-management/integration-analytics")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.testResponsiveLayout("integration-hub")
+  })
+
+  test("integration hub theme variations", async ({ page }) => {
+    await page.goto("/founder/api-management/integration-analytics")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.testThemeVariations("integration-hub")
   })
 })

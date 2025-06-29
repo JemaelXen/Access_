@@ -1,23 +1,11 @@
-import type { Page, Locator } from "@playwright/test"
-
-export interface ViewportConfig {
-  name: string
-  width: number
-  height: number
-}
-
-export interface UserConfig {
-  id: string
-  name: string
-  email: string
-  username: string
-  role: "user" | "admin" | "founder"
-  verified: boolean
-}
+import { type Page, expect } from "@playwright/test"
 
 export class ScreenshotHelpers {
   constructor(private page: Page) {}
 
+  /**
+   * Disable all animations and transitions for consistent screenshots
+   */
   async disableAnimations(): Promise<void> {
     await this.page.addStyleTag({
       content: `
@@ -26,246 +14,241 @@ export class ScreenshotHelpers {
           animation-delay: 0s !important;
           transition-duration: 0s !important;
           transition-delay: 0s !important;
-          animation-play-state: paused !important;
+          scroll-behavior: auto !important;
         }
-        .animate-spin,
-        .animate-pulse,
-        .animate-bounce,
-        .animate-ping {
+        
+        .animate-spin {
           animation: none !important;
         }
-        @keyframes none {
-          0%, 100% { opacity: 1; }
+        
+        .animate-pulse {
+          animation: none !important;
+        }
+        
+        .animate-bounce {
+          animation: none !important;
         }
       `,
     })
   }
 
+  /**
+   * Hide scrollbars for cleaner screenshots
+   */
   async hideScrollbars(): Promise<void> {
     await this.page.addStyleTag({
       content: `
         ::-webkit-scrollbar {
-          display: none !important;
+          display: none;
         }
+        
         * {
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-        }
-        html {
-          overflow: -moz-scrollbars-none;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
         }
       `,
     })
   }
 
-  async setFixedTime(date = "2024-01-15T10:00:00Z"): Promise<void> {
-    await this.page.addInitScript((fixedDate) => {
-      const mockDate = new Date(fixedDate)
-      const originalDate = Date
-
-      // Override Date constructor
-      function MockDate(...args: any[]) {
-        if (args.length === 0) {
-          return mockDate
+  /**
+   * Set a fixed time for consistent timestamps in screenshots
+   */
+  async setFixedTime(): Promise<void> {
+    const fixedTime = new Date("2024-01-15T10:30:00Z").getTime()
+    await this.page.addInitScript(`{
+      Date.now = () => ${fixedTime};
+      const OriginalDate = Date;
+      Date = class extends OriginalDate {
+        constructor(...args) {
+          if (args.length === 0) {
+            super(${fixedTime});
+          } else {
+            super(...args);
+          }
         }
-        return new originalDate(...args)
-      }
-
-      MockDate.now = () => mockDate.getTime()
-      MockDate.UTC = originalDate.UTC
-      MockDate.parse = originalDate.parse
-      MockDate.prototype = originalDate.prototype
-
-      // @ts-ignore
-      Date = MockDate
-    }, date)
+      };
+    }`)
   }
 
-  async waitForStableContent(timeout = 5000): Promise<void> {
+  /**
+   * Mock API responses for consistent data
+   */
+  async mockApiResponses(): Promise<void> {
+    // Mock user data
+    await this.page.route("**/api/user", async (route) => {
+      await route.fulfill({
+        json: {
+          id: "test-user-123",
+          name: "Test User",
+          email: "test@example.com",
+          role: "admin",
+          avatar: "/placeholder-user.jpg",
+        },
+      })
+    })
+
+    // Mock dashboard metrics
+    await this.page.route("**/api/metrics", async (route) => {
+      await route.fulfill({
+        json: {
+          totalUsers: 1234,
+          activeIntegrations: 56,
+          apiCalls: 789012,
+          uptime: 99.9,
+          revenue: 45678.9,
+        },
+      })
+    })
+
+    // Mock social feed data
+    await this.page.route("**/api/feed", async (route) => {
+      await route.fulfill({
+        json: {
+          posts: [
+            {
+              id: "1",
+              author: "John Doe",
+              content: "Just launched our new integration!",
+              timestamp: "2024-01-15T10:00:00Z",
+              likes: 42,
+              isFounder: true,
+            },
+            {
+              id: "2",
+              author: "Jane Smith",
+              content: "Great insights from the latest benchmark report.",
+              timestamp: "2024-01-15T09:30:00Z",
+              likes: 28,
+              isFounder: false,
+            },
+          ],
+        },
+      })
+    })
+
+    // Mock integration data
+    await this.page.route("**/api/integrations", async (route) => {
+      await route.fulfill({
+        json: {
+          active: [
+            { id: "1", name: "Salesforce", status: "active", health: 98 },
+            { id: "2", name: "HubSpot", status: "active", health: 95 },
+            { id: "3", name: "Slack", status: "warning", health: 87 },
+          ],
+          available: [
+            { id: "4", name: "Microsoft Teams", category: "Communication" },
+            { id: "5", name: "Zoom", category: "Communication" },
+            { id: "6", name: "Stripe", category: "Payment" },
+          ],
+        },
+      })
+    })
+  }
+
+  /**
+   * Wait for all content to be stable before taking screenshot
+   */
+  async waitForStableContent(): Promise<void> {
+    // Wait for network to be idle
     await this.page.waitForLoadState("networkidle")
 
-    // Wait for common dynamic elements
-    const dynamicSelectors = [
-      '[data-testid*="chart"]',
-      ".recharts-wrapper",
-      "canvas",
-      'svg[class*="chart"]',
-      '[data-testid*="loading"]',
-      ".animate-pulse",
-      '[data-testid="revenue-chart"]',
-      '[data-testid="user-acquisition-map"]',
-      '[data-testid="integration-heatmap"]',
-      '[data-testid="real-time-monitoring"]',
-    ]
-
-    for (const selector of dynamicSelectors) {
-      try {
-        const elements = await this.page.locator(selector).count()
-        if (elements > 0) {
-          await this.page.waitForTimeout(2000)
-          break
-        }
-      } catch {
-        // Continue if selector doesn't exist
-      }
-    }
+    // Wait for any charts or dynamic content
+    await this.page.waitForSelector('[data-testid="chart"]', { timeout: 5000 }).catch(() => {})
+    await this.page.waitForSelector('[data-testid="metrics"]', { timeout: 5000 }).catch(() => {})
 
     // Additional wait for any remaining animations
     await this.page.waitForTimeout(1000)
   }
 
-  async mockAuthenticatedUser(role: "user" | "admin" | "founder" = "user"): Promise<void> {
-    const userData: Record<string, UserConfig> = {
-      user: {
-        id: "user-123",
-        name: "Test User",
-        email: "test@example.com",
-        username: "testuser",
-        role: "user",
-        verified: false,
-      },
-      admin: {
-        id: "admin-123",
-        name: "Admin User",
-        email: "admin@example.com",
-        username: "admin",
-        role: "admin",
-        verified: true,
-      },
-      founder: {
-        id: "founder-001",
-        name: "Jemael Xenn",
-        email: "founder@projectaccess.co",
-        username: "jemael",
-        role: "founder",
-        verified: true,
-      },
-    }
+  /**
+   * Setup authentication for different user roles
+   */
+  async setupAuth(role: "user" | "admin" | "founder" = "user"): Promise<void> {
+    await this.page.addInitScript((userRole) => {
+      localStorage.setItem("auth-token", "mock-test-token-12345")
+      localStorage.setItem("user-role", userRole)
+      localStorage.setItem("user-id", "test-user-123")
+      localStorage.setItem("user-name", "Test User")
+      localStorage.setItem("user-email", "test@example.com")
 
-    await this.page.addInitScript((data) => {
-      window.localStorage.setItem("auth-token", "mock-jwt-token-12345")
-      window.localStorage.setItem("user-data", JSON.stringify(data))
-      window.localStorage.setItem("user-role", data.role)
-      window.localStorage.setItem("user-id", data.id)
-      window.localStorage.setItem("is-authenticated", "true")
-    }, userData[role])
+      if (userRole === "founder") {
+        localStorage.setItem("is-founder", "true")
+        localStorage.setItem("company", "Test Company")
+      }
+    }, role)
   }
 
-  async mockApiResponses(): Promise<void> {
-    await this.page.route("**/api/**", async (route) => {
-      const url = route.request().url()
+  /**
+   * Take a full page screenshot with all optimizations
+   */
+  async takeFullPageScreenshot(name: string): Promise<void> {
+    await this.disableAnimations()
+    await this.hideScrollbars()
+    await this.waitForStableContent()
 
-      // Mock different API endpoints
-      if (url.includes("/api/health")) {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({ status: "healthy", timestamp: "2024-01-15T10:00:00Z" }),
-        })
-      } else if (url.includes("/api/dashboard/metrics")) {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            revenue: 125000,
-            users: 2847,
-            growth: 12.5,
-            conversion: 3.2,
-          }),
-        })
-      } else {
-        // Default mock response
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({ success: true, data: [] }),
-        })
-      }
+    await expect(this.page).toHaveScreenshot(`${name}-full-page.png`, {
+      fullPage: true,
+      animations: "disabled",
     })
   }
 
-  async captureResponsiveViews(url: string): Promise<Record<string, Buffer>> {
-    const viewports: ViewportConfig[] = [
-      { name: "mobile", width: 375, height: 667 },
-      { name: "tablet", width: 768, height: 1024 },
-      { name: "desktop", width: 1920, height: 1080 },
-      { name: "wide", width: 2560, height: 1440 },
-    ]
+  /**
+   * Take a screenshot of a specific element
+   */
+  async takeElementScreenshot(selector: string, name: string): Promise<void> {
+    await this.disableAnimations()
+    await this.waitForStableContent()
 
-    const screenshots: Record<string, Buffer> = {}
+    const element = this.page.locator(selector)
+    await expect(element).toHaveScreenshot(`${name}-element.png`, {
+      animations: "disabled",
+    })
+  }
+
+  /**
+   * Test responsive layouts
+   */
+  async testResponsiveLayout(name: string): Promise<void> {
+    const viewports = [
+      { width: 375, height: 667, name: "mobile" },
+      { width: 768, height: 1024, name: "tablet" },
+      { width: 1920, height: 1080, name: "desktop" },
+    ]
 
     for (const viewport of viewports) {
       await this.page.setViewportSize({ width: viewport.width, height: viewport.height })
-      await this.page.goto(url)
       await this.waitForStableContent()
-
-      screenshots[viewport.name] = await this.page.screenshot({
+      await expect(this.page).toHaveScreenshot(`${name}-${viewport.name}.png`, {
         fullPage: true,
         animations: "disabled",
       })
     }
-
-    return screenshots
   }
 
-  async captureThemeVariations(url: string): Promise<Record<string, Buffer>> {
-    const screenshots: Record<string, Buffer> = {}
-
-    // Light theme
-    await this.page.goto(url)
+  /**
+   * Test theme variations
+   */
+  async testThemeVariations(name: string): Promise<void> {
+    // Test light theme
     await this.page.evaluate(() => {
       document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
     })
     await this.waitForStableContent()
-    screenshots.light = await this.page.screenshot({
+    await expect(this.page).toHaveScreenshot(`${name}-light-theme.png`, {
       fullPage: true,
       animations: "disabled",
     })
 
-    // Dark theme
+    // Test dark theme
     await this.page.evaluate(() => {
       document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
     })
-    await this.page.waitForTimeout(500)
-    screenshots.dark = await this.page.screenshot({
+    await this.waitForStableContent()
+    await expect(this.page).toHaveScreenshot(`${name}-dark-theme.png`, {
       fullPage: true,
       animations: "disabled",
     })
-
-    return screenshots
-  }
-
-  async captureComponentStates(locator: Locator): Promise<Record<string, Buffer>> {
-    const screenshots: Record<string, Buffer> = {}
-
-    // Normal state
-    screenshots.normal = await locator.screenshot({ animations: "disabled" })
-
-    // Hover state
-    try {
-      await locator.hover()
-      await this.page.waitForTimeout(200)
-      screenshots.hover = await locator.screenshot({ animations: "disabled" })
-    } catch {
-      // Element not hoverable
-    }
-
-    // Focus state
-    try {
-      await locator.focus()
-      await this.page.waitForTimeout(200)
-      screenshots.focus = await locator.screenshot({ animations: "disabled" })
-    } catch {
-      // Element not focusable
-    }
-
-    return screenshots
-  }
-
-  async setupTestEnvironment(): Promise<void> {
-    await this.disableAnimations()
-    await this.hideScrollbars()
-    await this.setFixedTime()
-    await this.mockApiResponses()
   }
 }

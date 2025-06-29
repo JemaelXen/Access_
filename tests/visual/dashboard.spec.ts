@@ -1,99 +1,54 @@
-import { test, expect } from "@playwright/test"
+import { test } from "@playwright/test"
 import { ScreenshotHelpers } from "./utils/screenshot-helpers"
 
 test.describe("Dashboard Visual Tests", () => {
-  let helpers: ScreenshotHelpers
-
   test.beforeEach(async ({ page }) => {
-    helpers = new ScreenshotHelpers(page)
-    await helpers.setupTestEnvironment()
-    await helpers.mockAuthenticatedUser("admin")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.setFixedTime()
+    await helpers.mockApiResponses()
+    await helpers.setupAuth("admin")
+    await page.goto("/dashboard")
   })
 
-  test("admin dashboard overview", async ({ page }) => {
-    await page.goto("/dashboard")
-    await helpers.waitForStableContent()
-
-    await expect(page).toHaveScreenshot("dashboard-overview.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+  test("admin dashboard full layout", async ({ page }) => {
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("admin-dashboard")
   })
 
   test("dashboard metrics cards", async ({ page }) => {
-    await page.goto("/dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for metrics or card components
-    const metricsCards = page.locator('[class*="card"], [data-testid*="metric"], [class*="grid"]').first()
-    if ((await metricsCards.count()) > 0) {
-      await expect(metricsCards).toHaveScreenshot("dashboard-metrics-cards.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="metrics-cards"]', "dashboard-metrics")
   })
 
-  test("dashboard charts and graphs", async ({ page }) => {
-    await page.goto("/dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for chart components
-    const chartElements = page.locator('svg, canvas, [class*="chart"], [data-testid*="chart"]')
-    const chartCount = await chartElements.count()
-
-    if (chartCount > 0) {
-      for (let i = 0; i < Math.min(chartCount, 3); i++) {
-        const chart = chartElements.nth(i)
-        await expect(chart).toHaveScreenshot(`dashboard-chart-${i + 1}.png`, {
-          animations: "disabled",
-        })
-      }
-    }
+  test("dashboard charts section", async ({ page }) => {
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="charts-section"]', "dashboard-charts")
   })
 
   test("dashboard sidebar navigation", async ({ page }) => {
-    await page.goto("/dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for sidebar or navigation elements
-    const sidebar = page.locator('[class*="sidebar"], aside, nav').first()
-    if ((await sidebar.count()) > 0) {
-      await expect(sidebar).toHaveScreenshot("dashboard-sidebar.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="sidebar"]', "dashboard-sidebar")
   })
 
-  test("dashboard responsive layout", async ({ page }) => {
-    const viewports = [
-      { name: "mobile", width: 375, height: 667 },
-      { name: "tablet", width: 768, height: 1024 },
-      { name: "desktop", width: 1920, height: 1080 },
-    ]
-
-    for (const viewport of viewports) {
-      await page.setViewportSize(viewport)
-      await page.goto("/dashboard")
-      await helpers.waitForStableContent()
-
-      await expect(page).toHaveScreenshot(`dashboard-${viewport.name}.png`, {
-        fullPage: true,
-        animations: "disabled",
-      })
-    }
+  test("dashboard responsive layouts", async ({ page }) => {
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.testResponsiveLayout("admin-dashboard")
   })
 
-  test("dashboard dark mode", async ({ page }) => {
-    await page.goto("/dashboard")
-    await helpers.waitForStableContent()
+  test("dashboard theme variations", async ({ page }) => {
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.testThemeVariations("admin-dashboard")
+  })
 
-    // Enable dark mode
-    await page.evaluate(() => document.documentElement.classList.add("dark"))
-    await page.waitForTimeout(500)
+  test("dashboard with founder role", async ({ page }) => {
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.setupAuth("founder")
+    await page.reload()
+    await helpers.takeFullPageScreenshot("dashboard-founder")
+  })
 
-    await expect(page).toHaveScreenshot("dashboard-dark-mode.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+  test("dashboard quick actions", async ({ page }) => {
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="quick-actions"]', "dashboard-quick-actions")
   })
 })

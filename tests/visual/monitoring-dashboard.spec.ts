@@ -1,90 +1,69 @@
-import { test, expect } from "@playwright/test"
+import { test } from "@playwright/test"
 import { ScreenshotHelpers } from "./utils/screenshot-helpers"
 
 test.describe("Monitoring Dashboard Visual Tests", () => {
-  let helpers: ScreenshotHelpers
-
   test.beforeEach(async ({ page }) => {
-    helpers = new ScreenshotHelpers(page)
-    await helpers.setupTestEnvironment()
-    await helpers.mockAuthenticatedUser("founder")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.setFixedTime()
+    await helpers.mockApiResponses()
+    await helpers.setupAuth("founder")
   })
 
-  test("monitoring dashboard overview", async ({ page }) => {
+  test("monitoring dashboard full layout", async ({ page }) => {
     await page.goto("/founder/monitoring-dashboard")
-    await helpers.waitForStableContent()
-
-    await expect(page).toHaveScreenshot("monitoring-dashboard-overview.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("monitoring-dashboard")
   })
 
   test("real-time monitoring panels", async ({ page }) => {
     await page.goto("/founder/monitoring-dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for monitoring panels or widgets
-    const monitoringPanels = page.locator('[class*="panel"], [class*="widget"], [class*="monitor"]')
-    const panelCount = await monitoringPanels.count()
-
-    if (panelCount > 0) {
-      for (let i = 0; i < Math.min(panelCount, 4); i++) {
-        const panel = monitoringPanels.nth(i)
-        await expect(panel).toHaveScreenshot(`monitoring-panel-${i + 1}.png`, {
-          animations: "disabled",
-        })
-      }
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="monitoring-panels"]', "monitoring-panels")
   })
 
-  test("alert center interface", async ({ page }) => {
+  test("alert center", async ({ page }) => {
     await page.goto("/founder/monitoring-dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for alert components
-    const alertCenter = page.locator('[class*="alert"], [data-testid*="alert"]').first()
-    if ((await alertCenter.count()) > 0) {
-      await expect(alertCenter).toHaveScreenshot("monitoring-alert-center.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="alert-center"]', "alert-center")
   })
 
-  test("performance metrics display", async ({ page }) => {
+  test("performance metrics", async ({ page }) => {
     await page.goto("/founder/monitoring-dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for metrics displays
-    const metricsDisplay = page.locator('[class*="metrics"], [class*="performance"]').first()
-    if ((await metricsDisplay.count()) > 0) {
-      await expect(metricsDisplay).toHaveScreenshot("performance-metrics-display.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="performance-metrics"]', "performance-metrics")
   })
 
-  test("ml insights visualization", async ({ page }) => {
+  test("ml insights dashboard", async ({ page }) => {
     await page.goto("/founder/monitoring-dashboard")
-    await helpers.waitForStableContent()
-
-    // Look for ML insights components
-    const mlInsights = page.locator('[class*="ml"], [class*="insights"], [class*="ai"]').first()
-    if ((await mlInsights.count()) > 0) {
-      await expect(mlInsights).toHaveScreenshot("ml-insights-visualization.png", {
-        animations: "disabled",
-      })
-    }
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="ml-insights"]', "ml-insights")
   })
 
-  test("monitoring dashboard mobile view", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.goto("/founder/monitoring-dashboard")
-    await helpers.waitForStableContent()
+  test("executive dashboard", async ({ page }) => {
+    await page.goto("/founder/executive-dashboard")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeFullPageScreenshot("executive-dashboard")
+  })
 
-    await expect(page).toHaveScreenshot("monitoring-dashboard-mobile.png", {
-      fullPage: true,
-      animations: "disabled",
-    })
+  test("monitoring dashboard responsive layouts", async ({ page }) => {
+    await page.goto("/founder/monitoring-dashboard")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.testResponsiveLayout("monitoring-dashboard")
+  })
+
+  test("monitoring dashboard theme variations", async ({ page }) => {
+    await page.goto("/founder/monitoring-dashboard")
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.testThemeVariations("monitoring-dashboard")
+  })
+
+  test("alert rules configuration", async ({ page }) => {
+    await page.goto("/founder/monitoring-dashboard")
+
+    // Open alert rules modal
+    await page.click('[data-testid="configure-alerts"]')
+
+    const helpers = new ScreenshotHelpers(page)
+    await helpers.takeElementScreenshot('[data-testid="alert-rules-modal"]', "alert-rules-modal")
   })
 })
