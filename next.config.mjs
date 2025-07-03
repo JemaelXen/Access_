@@ -24,6 +24,14 @@ const nextConfig = {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'your-secret-key-here-change-in-production',
     DATABASE_URL: process.env.DATABASE_URL || 'postgresql://user:password@localhost:5432/projectaccess',
   },
+  async rewrites() {
+    return [
+      {
+        source: "/(.*)",
+        destination: "/"
+      }
+    ]
+  }
 }
 
 export default nextConfig
